@@ -17,6 +17,7 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
+            Model model_1 = new Model();
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
             BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
                 model.ElementsDictionary.Count + 1, 1, 4, false, false);
