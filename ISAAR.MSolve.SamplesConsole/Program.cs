@@ -35,6 +35,7 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
         }
 
+<<<<<<< HEAD
         private static void SolveBuildingInNoSoilSmallVRFStochastic()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -64,6 +65,8 @@ namespace ISAAR.MSolve.SamplesConsole
             stochasticAnalyzer.Solve();
         }
 
+=======
+>>>>>>> refs/remotes/isaar/master
         private static void SolveBuildingInNoSoilSmallDynamic()
         {
             VectorExtensions.AssignTotalAffinityCount();
