@@ -52,6 +52,11 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             return afE;
         }
 
+        public IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates)
+        {
+            return new Matrix2D<double>(GetConstitutiveMatrixInternal(coordinates));
+        }
+
         #region IFiniteElementMaterial Members
 
         public int ID
@@ -122,11 +127,6 @@ namespace ISAAR.MSolve.PreProcessor.Materials
         {
             get { return coefficientsProvider; }
             set { coefficientsProvider = value; }
-        }
-
-        public IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates)
-        {
-            return new Matrix2D<double>(GetConstitutiveMatrixInternal(coordinates));
         }
 
         #endregion

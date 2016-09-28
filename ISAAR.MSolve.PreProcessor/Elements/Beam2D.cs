@@ -20,6 +20,10 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
 
+        protected Beam2D()
+        {
+        }
+
         public Beam2D(IFiniteElementMaterial material)
         {
             this.material = material;
@@ -65,7 +69,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //[ -c^2*E*A/L-12*s^2*E*I/L^3, -s*E*A/L*c+12*c*E*I/L^3*s,               6*E*I/L^2*s,  c^2*E*A/L+12*s^2*E*I/L^3,  s*E*A/L*c-12*c*E*I/L^3*s,               6*E*I/L^2*s]
         //[ -s*E*A/L*c+12*c*E*I/L^3*s, -s^2*E*A/L-12*c^2*E*I/L^3,              -6*E*I/L^2*c,  s*E*A/L*c-12*c*E*I/L^3*s,  s^2*E*A/L+12*c^2*E*I/L^3,              -6*E*I/L^2*c]
         //[              -6*E*I/L^2*s,               6*E*I/L^2*c,                   2*E*I/L,               6*E*I/L^2*s,              -6*E*I/L^2*c,                   4*E*I/L]
-        public IMatrix2D<double> StiffnessMatrix(Element element)
+        public virtual IMatrix2D<double> StiffnessMatrix(Element element)
         {
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
