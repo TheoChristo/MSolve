@@ -92,7 +92,9 @@
   <ItemGroup>
     <Compile Include="Cluster.cs" />
     <Compile Include="Elements\Hexa8u8pWithStochasticMaterial.cs" />
+    <Compile Include="Interfaces\IIsotropicContinuumMaterial3D.cs" />
     <Compile Include="Interfaces\IMassAccelerationHistoryLoad.cs" />
+    <Compile Include="Interfaces\IStochasticIsotropicContinuumMaterial3D.cs" />
     <Compile Include="MassAccelerationSinusoidalLoad.cs" />
     <Compile Include="Elements\ConcentratedMass3D.cs" />
     <Compile Include="Elements\SpringDamper3D.cs" />
@@ -120,8 +122,8 @@
     <Compile Include="Providers\ElementStructuralMassProvider.cs" />
     <Compile Include="Element.cs" />
     <Compile Include="Providers\ElementStructuralStiffnessProvider.cs" />
-    <Compile Include="Elements\Beam2D.cs" />
-    <Compile Include="Elements\Beam3D.cs" />
+    <Compile Include="Elements\EulerBeam2D.cs" />
+    <Compile Include="Elements\EulerBeam3D.cs" />
     <Compile Include="Elements\Hexa8WithStochasticMaterial.cs" />
     <Compile Include="Elements\Hexa8u8p.cs" />
     <Compile Include="Elements\Hexa8.cs" />
@@ -129,7 +131,7 @@
     <Compile Include="Stochastic\GaussianFileStochasticCoefficientsProvider.cs" />
     <Compile Include="GlobalMatrixAssemblerSkyline.cs" />
     <Compile Include="Interfaces\IStochasticMaterialCoefficientsProvider.cs" />
-    <Compile Include="Interfaces\IStochasticFiniteElementMaterial.cs" />
+    <Compile Include="Interfaces\IStochasticContinuumMaterial3D.cs" />
     <Compile Include="Interfaces\IStochasticCoefficientsProvider.cs" />
     <Compile Include="Interfaces\IStochasticFiniteElement.cs" />
     <Compile Include="Interfaces\IEmbeddedElement.cs" />
@@ -142,7 +144,7 @@
     <Compile Include="Interfaces\IFiberFiniteElementMaterial.cs" />
     <Compile Include="Interfaces\IFiberMaterial.cs" />
     <Compile Include="Interfaces\IFiniteElementMaterial.cs" />
-    <Compile Include="Interfaces\IFiniteElementMaterial3D.cs" />
+    <Compile Include="Interfaces\IContinuumMaterial3D.cs" />
     <Compile Include="Interfaces\IStructuralFiniteElement.cs" />
     <Compile Include="Load.cs" />
     <Compile Include="MassAccelerationHistoryLoad.cs" />
