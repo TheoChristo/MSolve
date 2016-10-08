@@ -10,8 +10,8 @@ namespace ISAAR.MSolve.PreProcessor.Interfaces
         int ID { get; }
         bool Modified { get; }
         void ResetModified();
-        double YoungModulus { get; set; }
-        double PoissonRatio { get; set; }
+        //double YoungModulus { get; set; } //TODO remove
+        //double PoissonRatio { get; set; } //TODO remove
         double[] Coordinates { get; set; }
     }
 }
