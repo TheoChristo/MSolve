@@ -26,11 +26,11 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         {
             materialsAtGaussPoints = new IFiniteElementMaterial3D[iInt3];
             for (int i = 0; i < iInt3; i++)
-                materialsAtGaussPoints[i] = (IStochasticFiniteElementMaterial)material.Clone();
+                materialsAtGaussPoints[i] = (IFiniteElementMaterial3D)material.Clone();
         }
 
         public Hexa8u8pWithStochasticMaterial(IStochasticFiniteElementMaterial material, Hexa8Memoizer memoizer)
-            : base(material)
+            : this(material)
         {
             this.memoizer = memoizer;
         }

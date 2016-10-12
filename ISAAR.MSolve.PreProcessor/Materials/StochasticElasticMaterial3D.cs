@@ -129,6 +129,11 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             set { coefficientsProvider = value; }
         }
 
+        public double[] GetStochasticMaterialProperties(double[] coordinates)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
