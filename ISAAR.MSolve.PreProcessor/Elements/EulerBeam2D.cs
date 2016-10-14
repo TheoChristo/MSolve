@@ -9,21 +9,20 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
-    public class Beam2D : IStructuralFiniteElement
+    public class EulerBeam2D : IStructuralFiniteElement
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private readonly IFiniteElementMaterial material;
+        //private readonly IFiniteElementMaterial material; //TODO remove
+        private readonly double youngModulus;
         private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
         public double MomentOfInertia { get; set; }
 
-        protected Beam2D()
-        {
-        }
-
+        #region Possibly deprecated constructors
+        /*
         public Beam2D(IFiniteElementMaterial material)
         {
             this.material = material;
@@ -34,9 +33,22 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         {
             this.dofEnumerator = dofEnumerator;
         }
+        */
+        #endregion
 
-        public IFiniteElementDOFEnumerator DOFEnumerator 
-        { 
+        public EulerBeam2D(double youngModulus)
+        {
+            this.youngModulus = youngModulus;
+        }
+
+        public EulerBeam2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+            : this(youngModulus)
+        {
+            this.dofEnumerator = dofEnumerator;
+        }
+
+        public IFiniteElementDOFEnumerator DOFEnumerator
+        {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
@@ -69,7 +81,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //[ -c^2*E*A/L-12*s^2*E*I/L^3, -s*E*A/L*c+12*c*E*I/L^3*s,               6*E*I/L^2*s,  c^2*E*A/L+12*s^2*E*I/L^3,  s*E*A/L*c-12*c*E*I/L^3*s,               6*E*I/L^2*s]
         //[ -s*E*A/L*c+12*c*E*I/L^3*s, -s^2*E*A/L-12*c^2*E*I/L^3,              -6*E*I/L^2*c,  s*E*A/L*c-12*c*E*I/L^3*s,  s^2*E*A/L+12*c^2*E*I/L^3,              -6*E*I/L^2*c]
         //[              -6*E*I/L^2*s,               6*E*I/L^2*c,                   2*E*I/L,               6*E*I/L^2*s,              -6*E*I/L^2*c,                   4*E*I/L]
-        public virtual IMatrix2D<double> StiffnessMatrix(Element element)
+        public IMatrix2D<double> StiffnessMatrix(Element element)
         {
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
             double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
@@ -78,7 +90,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double c2 = c * c;
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
-            double EL = (material as ElasticMaterial).YoungModulus / L;
+            //double EL = (material as ElasticMaterial).YoungModulus / L; //TODO remove
+            double EL = this.youngModulus;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
@@ -135,7 +148,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double dAL420 = Density * SectionArea * L / 420;
 
             double totalMass = Density * SectionArea * L;
-            double totalMassOfDiagonalTerms = 2*dAL420*(140*c2+156*s2) + 2*dAL420*(140*s2+156*c2);
+            double totalMassOfDiagonalTerms = 2 * dAL420 * (140 * c2 + 156 * s2) + 2 * dAL420 * (140 * s2 + 156 * c2);
             double scale = totalMass / totalMassOfDiagonalTerms;
 
             return new SymmetricMatrix2D<double>(new double[] { dAL420*(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
@@ -192,13 +205,13 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         #endregion
 
-        #region IStructuralFiniteElement Members
-
+        #region IStructuralFiniteElement Members (possibly deprecated)
+        /*
         public IFiniteElementMaterial Material
         {
             get { return material; }
         }
-
+        */
         #endregion
 
         #region IFiniteElement Members
@@ -206,12 +219,16 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public bool MaterialModified
         {
-            get { return material.Modified; }
+            get
+            {
+                //return material.Modified; //TODO remove
+                return false;
+            }
         }
 
         public void ResetMaterialModified()
         {
-            material.ResetModified();
+            //material.ResetModified(); //TODO remove
         }
 
         #endregion
