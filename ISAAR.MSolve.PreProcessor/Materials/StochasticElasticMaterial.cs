@@ -20,10 +20,10 @@ namespace ISAAR.MSolve.PreProcessor.Materials
             this.CoefficientsProvider = coefficientsProvider;
         }
 
-        public double[] GetStochasticMaterialProperties(double[] coordinates)
+        private double GetStochasticYoungModulus(double[] coordinates)
         {
             double stochasticYoungModulus = CoefficientsProvider.GetCoefficient(YoungModulus, coordinates);
-            return new double[] { stochasticYoungModulus,  PoissonRatio};
+            return stochasticYoungModulus;
         }
 
         #region IFiniteElementMaterialMembers
@@ -46,14 +46,6 @@ namespace ISAAR.MSolve.PreProcessor.Materials
         public object Clone()
         {
             return new StochasticElasticMaterial (CoefficientsProvider) { YoungModulus = this.YoungModulus, PoissonRatio = this.PoissonRatio };
-        }
-        #endregion
-
-        #region IStochasticFiniteElementMaterial
-
-        public IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates)
-        {
-            throw new NotImplementedException();
         }
         #endregion
 

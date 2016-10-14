@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.PreProcessor.Materials;
 using ISAAR.MSolve.Matrices.Interfaces;
 using ISAAR.MSolve.Matrices;
 
@@ -29,15 +28,26 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
     public class Beam2DWithStochasticMaterial : Beam2D
     {
-        protected readonly new IStochasticFiniteElementMaterial Material;
+        protected readonly new IStochasticFiniteElementMaterial[] materialsAtCentroid;
         protected readonly Beam2DMemoizer memoizer;
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material) 
+        //private static double[][] integrationPoints = new double[][]
+        //{
+        //    new double[] { },
+        //    new double[] { 0 },
+        //    new double[] { -0.5773502691896, 0.5773502691896 },
+        //    new double[] { -0.774596669, 0, 0.774596669 },
+        //    new double[] { -0.8611363115941, -0.3399810435849, 0.3399810435849, 0.8611363115941 }
+        //};
+
+        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material)
         {
-            this.Material = material;
+            materialsAtCentroid = new IStochasticFiniteElementMaterial[iInt3];
+            for (int i = 0; i < iInt3; i++)
+                materialsAtCentroid[i] = (IStochasticFiniteElementMaterial)material.Clone();
         }
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material, Beam2DMemoizer memoizer) : this(material)
+        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material, Beam2dMemoizer memoizer) : this(material)
         {
             this.memoizer = memoizer;
         }
@@ -50,50 +60,83 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
         public override IMatrix2D<double> StiffnessMatrix(Element element)
         {
-            double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
-            double y2 = Math.Pow(element.Nodes[1].Y - element.Nodes[0].Y, 2);
-            double L = Math.Sqrt(x2 + y2);
-            double c = (element.Nodes[1].X - element.Nodes[0].X) / L;
-            double c2 = c * c;
-            double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
-            double s2 = s * s;
-            double[] coordinates = GetStochasticPoints(element);
-            double EL = (Material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
-            double EAL = EL * SectionArea;
-            double EIL = EL * MomentOfInertia;
-            double EIL2 = EIL / L;
-            double EIL3 = EIL2 / L;
-            return DOFEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(new double[] { c2*EAL+12*s2*EIL3, c*s*EAL-12*c*s*EIL3, -6*s*EIL2, -c2*EAL-12*s2*EIL3, -c*s*EAL+12*c*s*EIL3, -6*s*EIL2,
-                s2*EAL+12*c2*EIL3, 6*c*EIL2, -s*c*EAL+12*c*s*EIL3, -s2*EAL-12*c2*EIL3, 6*c*EIL2,
-                4*EIL, 6*s*EIL2, -6*c*EIL2, 2*EIL,
-                c2*EAL+12*s2*EIL3, s*c*EAL-12*c*s*EIL3, 6*s*EIL2,
-                s2*EAL+12*c2*EIL3, -6*c*EIL2,
-                4*EIL }));
+            double[,,] afE = new double[iInt3, 6, 6];
+            int iPos = 0;
+            for (int i1 = 0; i1 < iInt; i1++)
+                for (int i2 = 0; i2 < iInt; i2++)
+                    for (int i3 = 0; i3 < iInt; i3++)
+                    {
+                        iPos = i1 * iInt2 + i2 * iInt + i3;
+                        var e = ((Matrix2D<double>)materialsAtGaussPoints[iPos].GetConstitutiveMatrix(GetStochasticPoints(element, i1, i2, i3)));
+                        for (int j = 0; j < 6; j++)
+                            for (int k = 0; k < 6; k++)
+                                afE[iPos, j, k] = e[j, k];
+                        //afE[i, j, k] = ((Matrix2D<double>)materialsAtGaussPoints[i].GetConstitutiveMatrix(GetStochasticPoints(element, i / iInt2, (i % iInt2) / iInt, i % iInt)))[j, k];
+                    }
+
+            double[,,] faB;
+            double[] faWeight;
+            Tuple<double[], double[,,]> integrationData = new Tuple<double[], double[,,]>(null, null);
+            if (memoizer != null)
+                integrationData = memoizer.GetIntegrationData(element.ID);
+            if (integrationData.Item1 == null)
+            {
+                faB = new double[iInt3, 24, 6];
+                faWeight = new double[iInt3];
+                double[,] faXYZ = GetCoordinates(element);
+                double[,] faDS = new double[iInt3, 24];
+                double[,] faS = new double[iInt3, 8];
+                double[] faDetJ = new double[iInt3];
+                double[,,] faJ = new double[iInt3, 3, 3];
+                CalcH8GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
+                //for (int i = 0; i < iInt; i++)
+                //    for (int j = 0; j < iInt; j++)
+                //        for (int k = 0; k < iInt; k++)
+                //        {
+                //            faWeight[i * iInt * iInt + j * iInt + k] *= coefficientsProvider.GetCoefficient(GetStochasticPoints(element, i, j, k));
+                //            //faWeight[i * iInt * iInt + j * iInt + k] *= coefficientsProvider.GetCoefficient(new double[] { integrationPoints[iInt][i], integrationPoints[iInt][j], integrationPoints[iInt][k] });
+                //        }
+                if (memoizer != null)
+                    memoizer.SetIntegrationData(element.ID, new Tuple<double[], double[,,]>(faWeight, faB));
+            }
+            else
+            {
+                faB = integrationData.Item2;
+                faWeight = integrationData.Item1;
+            }
+            double[] faK = new double[300];
+            CalcH8K(ref iInt, afE, faB, faWeight, faK);
+            return dofEnumerator.GetTransformedMatrix(new SymmetricMatrix2D<double>(faK));
         }
 
-        private double[] GetStochasticPoints(Element element)
+        private double[] GetStochasticPoints(Element element, int iX, int iY, int iZ)
         {
             // Calculate for element centroid
             double X = 0;
             double Y = 0;
+            double Z = 0;
             double minX = element.Nodes[0].X;
             double minY = element.Nodes[0].Y;
+            double minZ = element.Nodes[0].Z;
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 8; i++)
             {
                 minX = minX > element.Nodes[i].X ? element.Nodes[i].X : minX;
                 minY = minY > element.Nodes[i].Y ? element.Nodes[i].Y : minY;
-                for (int j = i + 1; j < 2; j++)
+                minZ = minZ > element.Nodes[i].Z ? element.Nodes[i].Z : minZ;
+                for (int j = i + 1; j < 8; j++)
                 {
                     X = X < Math.Abs(element.Nodes[j].X - element.Nodes[i].X) ? Math.Abs(element.Nodes[j].X - element.Nodes[i].X) : X;
                     Y = Y < Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) ? Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) : Y;
+                    Z = Z < Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) ? Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) : Z;
                 }
             }
 
             double pointX = minX + X / 2;
             double pointY = minY + Y / 2;
+            double pointZ = minZ + Z / 2;
 
-            return new double[] { pointX, pointY};
+            return new double[] { pointX, pointY, pointZ };
 
             //// Calculate for individual gauss point
             ////if (iInt != 2) throw new ArgumentException("Stochastic provided functions with integration order of 2.");

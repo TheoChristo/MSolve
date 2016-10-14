@@ -6,10 +6,9 @@ using ISAAR.MSolve.Matrices.Interfaces;
 
 namespace ISAAR.MSolve.PreProcessor.Interfaces
 {
-    public interface IStochasticFiniteElementMaterial : IFiniteElementMaterial
+    public interface IStochasticFiniteElementMaterial /*: IFiniteElementMaterial3D*/
     {
         IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
-        IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates);
-        double[] GetStochasticMaterialProperties(double[] coordinates);
+        //IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates);
     }
 }
