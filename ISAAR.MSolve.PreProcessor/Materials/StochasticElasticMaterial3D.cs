@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.PreProcessor.Materials
         #region IFiniteElementMaterial3D Members
 
         public double[] Stresses { get { return new double[6]; } }
-        
+
         public IMatrix2D<double> ConstitutiveMatrix
         {
             get
@@ -127,11 +127,6 @@ namespace ISAAR.MSolve.PreProcessor.Materials
         {
             get { return coefficientsProvider; }
             set { coefficientsProvider = value; }
-        }
-
-        public double[] GetStochasticMaterialProperties(double[] coordinates)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion

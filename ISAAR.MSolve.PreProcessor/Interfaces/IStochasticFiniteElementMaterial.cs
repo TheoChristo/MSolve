@@ -10,6 +10,5 @@ namespace ISAAR.MSolve.PreProcessor.Interfaces
     {
         IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
         IMatrix2D<double> GetConstitutiveMatrix(double[] coordinates);
-        double[] GetStochasticMaterialProperties(double[] coordinates);
     }
 }

@@ -14,14 +14,14 @@ namespace ISAAR.MSolve.PreProcessor.Elements
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[6] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        //private readonly IFiniteElementMaterial material; //TODO remove
+        private readonly IFiniteElementMaterial material; //TODO remove
         private readonly double youngModulus;
         private readonly double poissonRatio;
         private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private const int hostDofsPerNode = 3;
         private const int embeddedDofsPerNode = 6;
         private const int commonDofsPerNode = 3;
-        //private Matrix2D<double> transformation;
+        private Matrix2D<double> transformation;
         private int noOfDOFs = 12;
         private DOFType[][] dofsWhenNoRotations = null;
         private List<Element> hostElementList;
@@ -34,14 +34,14 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         public double SectionArea { get; set; }
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
-        //public double MomentOfInertiaX { get; set; }
+        public double MomentOfInertiaX { get; set; }
         public double MomentOfInertiaY { get; set; }
         public double MomentOfInertiaZ { get; set; }
         public double MomentOfInertiaPolar { get; set; }
         public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } }
 
         #region Possibly deprecated constructors
-        /*
+
         public Beam3D(IFiniteElementMaterial material)
         {
             this.material = material;
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         {
             this.dofEnumerator = dofEnumerator;
         }
-        */
+
         #endregion
 
 
