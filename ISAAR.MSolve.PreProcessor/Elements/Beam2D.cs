@@ -9,7 +9,7 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
-    public class EulerBeam2D : IStructuralFiniteElement
+    public class Beam2D : IStructuralFiniteElement
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
@@ -36,12 +36,12 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         */
         #endregion
 
-        public EulerBeam2D(double youngModulus)
+        public Beam2D(double youngModulus)
         {
             this.youngModulus = youngModulus;
         }
 
-        public EulerBeam2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
+        public Beam2D(double youngModulus, IFiniteElementDOFEnumerator dofEnumerator)
             : this(youngModulus)
         {
             this.dofEnumerator = dofEnumerator;
