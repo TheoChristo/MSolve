@@ -27,17 +27,17 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         }
     }
 
-    public class Beam2DWithStochasticMaterial : Beam2D
+    public class EulerBeam2DWithStochasticMaterial : EulerBeam2D
     {
-        protected readonly new IStochasticFiniteElementMaterial Material;
+        private readonly double youngModulus;
         protected readonly Beam2DMemoizer memoizer;
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material)
+        public EulerBeam2DWithStochasticMaterial (double youngModulus)
         {
-            this.Material = material;
+            this.youngModulus = youngModulus;
         }
 
-        public Beam2DWithStochasticMaterial(IStochasticFiniteElementMaterial material, Beam2DMemoizer memoizer) : this(material)
+        public EulerBeam2DWithStochasticMaterial(double youngModulus, Beam2DMemoizer memoizer) : this(youngModulus)
         {
             this.memoizer = memoizer;
         }
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
             double[] coordinates = GetStochasticPoints(element);
-            double EL = (Material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
+            double EL = (material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
