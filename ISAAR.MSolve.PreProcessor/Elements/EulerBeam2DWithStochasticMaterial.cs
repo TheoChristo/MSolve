@@ -9,7 +9,7 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
-    public class Beam2DMemoizer
+    public class EulerBeam2DMemoizer
     {
         private readonly Dictionary<int, Tuple<double[], double[,,]>> integrationDictionary = new Dictionary<int, Tuple<double[], double[,,]>>();
 
@@ -30,14 +30,14 @@ namespace ISAAR.MSolve.PreProcessor.Elements
     public class EulerBeam2DWithStochasticMaterial : EulerBeam2D
     {
         private readonly double youngModulus;
-        protected readonly Beam2DMemoizer memoizer;
+        protected readonly EulerBeam2DMemoizer memoizer;
 
         public EulerBeam2DWithStochasticMaterial (double youngModulus)
         {
             this.youngModulus = youngModulus;
         }
 
-        public EulerBeam2DWithStochasticMaterial(double youngModulus, Beam2DMemoizer memoizer) : this(youngModulus)
+        public EulerBeam2DWithStochasticMaterial(double youngModulus, EulerBeam2DMemoizer memoizer) : this(youngModulus)
         {
             this.memoizer = memoizer;
         }
