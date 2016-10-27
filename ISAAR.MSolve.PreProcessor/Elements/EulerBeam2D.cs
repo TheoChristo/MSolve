@@ -35,6 +35,9 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         }
         */
         #endregion
+        
+        protected EulerBeam2D()
+        { }
 
         public EulerBeam2D(double youngModulus)
         {
