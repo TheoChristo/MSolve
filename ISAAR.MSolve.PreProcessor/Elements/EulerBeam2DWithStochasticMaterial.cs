@@ -58,7 +58,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
             double[] coordinates = GetStochasticPoints(element);
-            double EL = (material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
+            //double EL = (material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
+            double EL = this.youngModulus;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
