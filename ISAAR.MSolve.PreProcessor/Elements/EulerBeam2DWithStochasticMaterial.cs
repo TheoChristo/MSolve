@@ -31,6 +31,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
     {
         private readonly double youngModulus;
         protected readonly EulerBeam2DMemoizer memoizer;
+        public IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
+
 
         public EulerBeam2DWithStochasticMaterial (double youngModulus)
         {
@@ -42,11 +44,11 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             this.memoizer = memoizer;
         }
 
-        //public Hexa8WithStochasticMaterial(IFiniteElementMaterial3D material, IStochasticCoefficientsProvider coefficientsProvider)
-        //    : this(material)
-        //{
-        //    this.coefficientsProvider = coefficientsProvider;
-        //}
+        public EulerBeam2DWithStochasticMaterial(double youngModulus, IStochasticMaterialCoefficientsProvider coefficientsProvider)
+            : this(youngModulus)
+        {
+            this.CoefficientsProvider = coefficientsProvider;
+        }
 
         public override IMatrix2D<double> StiffnessMatrix(Element element)
         {
@@ -59,8 +61,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double s2 = s * s;
             double[] coordinates = GetStochasticPoints(element);
             //double EL = (material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
-            double EL = coefficientsProvider.GetCoefficient(youngModulus, coordinates);
-            double EL = this.youngModulus;
+            double EL = CoefficientsProvider.GetCoefficient(youngModulus, coordinates);
+            //double EL = this.youngModulus;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;
