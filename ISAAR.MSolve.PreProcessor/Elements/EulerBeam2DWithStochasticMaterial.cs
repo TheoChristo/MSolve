@@ -9,28 +9,28 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
-    public class EulerBeam2DMemoizer
-    {
-        private readonly Dictionary<int, Tuple<double[], double[,,]>> integrationDictionary = new Dictionary<int, Tuple<double[], double[,,]>>();
+    //public class EulerBeam2DMemoizer
+    //{
+    //    private readonly Dictionary<int, Tuple<double[], double[,,]>> integrationDictionary = new Dictionary<int, Tuple<double[], double[,,]>>();
 
-        public Tuple<double[], double[,,]> GetIntegrationData(int element)
-        {
-            if (integrationDictionary.ContainsKey(element))
-                return integrationDictionary[element];
-            else
-                return new Tuple<double[], double[,,]>(null, null);
-        }
+    //    public Tuple<double[], double[,,]> GetIntegrationData(int element)
+    //    {
+    //        if (integrationDictionary.ContainsKey(element))
+    //            return integrationDictionary[element];
+    //        else
+    //            return new Tuple<double[], double[,,]>(null, null);
+    //    }
 
-        public void SetIntegrationData(int element, Tuple<double[], double[,,]> integrationData)
-        {
-            integrationDictionary.Add(element, integrationData);
-        }
-    }
+    //    public void SetIntegrationData(int element, Tuple<double[], double[,,]> integrationData)
+    //    {
+    //        integrationDictionary.Add(element, integrationData);
+    //    }
+    //}
 
     public class EulerBeam2DWithStochasticMaterial : EulerBeam2D
     {
         private readonly double youngModulus;
-        protected readonly EulerBeam2DMemoizer memoizer;
+        //protected readonly EulerBeam2DMemoizer memoizer;
         public IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
 
 
@@ -39,10 +39,10 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             this.youngModulus = youngModulus;
         }
 
-        public EulerBeam2DWithStochasticMaterial(double youngModulus, EulerBeam2DMemoizer memoizer) : this(youngModulus)
-        {
-            this.memoizer = memoizer;
-        }
+        //public EulerBeam2DWithStochasticMaterial(double youngModulus, EulerBeam2DMemoizer memoizer) : this(youngModulus)
+        //{
+        //    this.memoizer = memoizer;
+        //}
 
         public EulerBeam2DWithStochasticMaterial(double youngModulus, IStochasticMaterialCoefficientsProvider coefficientsProvider)
             : this(youngModulus)
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double s2 = s * s;
             double[] coordinates = GetStochasticPoints(element);
             //double EL = (material as StochasticElasticMaterial).GetStochasticMaterialProperties(coordinates)[0] / L;
-            double EL = CoefficientsProvider.GetCoefficient(youngModulus, coordinates);
+            double EL = CoefficientsProvider.GetCoefficient(youngModulus, coordinates) / L;
             //double EL = this.youngModulus;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;

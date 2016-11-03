@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double s = (element.Nodes[1].Y - element.Nodes[0].Y) / L;
             double s2 = s * s;
             //double EL = (material as ElasticMaterial).YoungModulus / L; //TODO remove
-            double EL = this.youngModulus;
+            double EL = this.youngModulus / L;
             double EAL = EL * SectionArea;
             double EIL = EL * MomentOfInertia;
             double EIL2 = EIL / L;

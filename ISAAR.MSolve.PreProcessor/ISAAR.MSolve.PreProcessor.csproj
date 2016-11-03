@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="Cluster.cs" />
     <Compile Include="Elements\EulerBeam2DWithStochasticMaterial.cs" />
+    <Compile Include="Elements\EulerBeam3DWithStochasticMaterial.cs" />
     <Compile Include="Elements\Hexa8u8pWithStochasticMaterial.cs" />
     <Compile Include="Interfaces\IContinuumMaterial2D.cs" />
     <Compile Include="Interfaces\IIsotropicContinuumMaterial3D.cs" />

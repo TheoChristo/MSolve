@@ -73,7 +73,9 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         */
         #endregion
 
-
+        protected EulerBeam3D()
+        { }
+        
         public EulerBeam3D(double youngModulus, double poissonRatio)
         {
             this.youngModulus = youngModulus;
