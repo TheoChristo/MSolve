@@ -15,7 +15,6 @@ namespace ISAAR.MSolve.SamplesConsole
     {
         private static void SolveBuildingInNoSoilSmall()
         {
-            //github change
             VectorExtensions.AssignTotalAffinityCount();
             Model model = new Model();
             model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
@@ -34,6 +33,36 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
+        }
+
+
+        private static void SolveBuildingInNoSoilSmallVRFStochastic()
+        {
+            VectorExtensions.AssignTotalAffinityCount();
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
+                model.ElementsDictionary.Count + 1, 1, 4, false, false);
+            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
+            model.ConnectDataStructures();
+
+            PowerSpectrumTargetEvaluatorCoefficientsProvider stochasticProvider = new PowerSpectrumTargetEvaluatorCoefficientsProvider(10, 0.1, 1.2, 20, 200, DOFType.X,
+                0.1, 200, 1e-10);
+
+
+            SolverSkyline solver = new SolverSkyline(model);
+            ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
+            LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
+            StaticAnalyzer childAnalyzer = new StaticAnalyzer(provider, analyzer, solver.SubdomainsDictionary);
+            VRFMonteCarloAnalyzerWithStochasticMaterial stochasticAnalyzer = new VRFMonteCarloAnalyzerWithStochasticMaterial(model, provider, childAnalyzer, solver.SubdomainsDictionary,
+                stochasticProvider, stochasticProvider, 1, 20, "monteCarlo");
+
+
+            analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 420 });
+
+            //stochasticAnalyzer.BuildMatrices();
+            //childAnalyzer.Initialize();
+            stochasticAnalyzer.Solve();
         }
 
         private static void SolveBuildingInNoSoilSmallDynamic()
@@ -60,7 +89,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
         static void Main(string[] args)
         {
-            SolveBuildingInNoSoilSmall();
+            SolveBuildingInNoSoilSmallVRFStochastic();
         }
     }
 }
