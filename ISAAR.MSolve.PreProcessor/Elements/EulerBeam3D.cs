@@ -26,9 +26,9 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         private DOFType[][] dofsWhenNoRotations = null;
         private List<Element> hostElementList;
         private bool[] isNodeEmbedded;
-        private readonly Node[][] rotNodes = new Node[2][];
+        public readonly Node[][] rotNodes = new Node[2][];
         private Matrix2D<double> rotTransformation;
-        private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        public IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
         public double SectionArea { get; set; }
@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             set { dofEnumerator = value; }
         }
 
-        private void InitializeDOFsWhenNoRotations()
+        public void InitializeDOFsWhenNoRotations()
         {
             if (rotNodes[0] == null && rotNodes[1] == null) return;
 
@@ -439,7 +439,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             return nodes;
         }
 
-        private IMatrix2D<double> StiffnessMatrixPure(Element element)
+        protected virtual IMatrix2D<double> StiffnessMatrixPure(Element element)
         {
             //var m = (material as IFiniteElementMaterial3D);//TODO remove material
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);

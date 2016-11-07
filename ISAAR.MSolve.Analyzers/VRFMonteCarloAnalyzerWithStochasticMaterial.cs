@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.Analyzers
                 coefficientsProvider.CurrentFrequency = i;
                 for (int j = 0; j < coefficientsProvider.NPhi; j++)
                 {
-                    coefficientsProvider.RandomVariables = randomNumbers[currentSimulation];
+                    //coefficientsProvider.RandomVariables = randomNumbers[currentSimulation];
                     coefficientsProvider.CurrentMCS = j;
                     var e = DateTime.Now;
                     BuildMatrices();

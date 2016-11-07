@@ -46,13 +46,31 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         //    this.memoizer = memoizer;
         //}
 
+        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, Node[] rot1Nodes, Node[] rot2Nodes)
+            : this(youngModulus, poissonRatio)
+        {
+            if (rot1Nodes != null && rot1Nodes.Length != 4)
+                throw new ArgumentException("Dependent nodes quantity for rotation1 has to be four.");
+            if (rot2Nodes != null && rot2Nodes.Length != 4)
+                throw new ArgumentException("Dependent nodes quantity for rotation2 has to be four.");
+            rotNodes[0] = rot1Nodes;
+            rotNodes[1] = rot2Nodes;
+
+            InitializeDOFsWhenNoRotations();
+        }
+
         public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IStochasticMaterialCoefficientsProvider coefficientsProvider)
             : this(youngModulus, poissonRatio)
         {
             this.CoefficientsProvider = coefficientsProvider;
         }
 
-        private IMatrix2D<double> StiffnessMatrixPure(Element element)
+        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IFiniteElementDOFEnumerator dofEnumerator) : this(youngModulus, poissonRatio)
+        {
+            this.dofEnumerator = dofEnumerator;
+        }
+
+        protected override IMatrix2D<double> StiffnessMatrixPure(Element element)
         {
             //var m = (material as IFiniteElementMaterial3D);//TODO remove material
             double x2 = Math.Pow(element.Nodes[1].X - element.Nodes[0].X, 2);
