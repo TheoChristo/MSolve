@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.SamplesConsole
             return new Node[] { nodeRight, nodeTop, nodeLeft, nodeBottom };
         }
 
-        public static void MakeBeamBuilding(Model model, double startX, double startY, double startZ, double beamWidth, double beamHeight,
+        public static void MakeBeamBuildingWithStochasticMaterial(Model model, double startX, double startY, double startZ, double beamWidth, double beamHeight,
             int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles, IStochasticMaterialCoefficientsProvider stochasticProvider)
         {
             const int nodesPerFloor = 18;
