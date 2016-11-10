@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         private static readonly DOFType[] nodalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         //private readonly IFiniteElementMaterial material; //TODO remove
-        private readonly double youngModulus;
+        protected readonly double youngModulus;
         private IFiniteElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
 
         public double Density { get; set; }
@@ -36,9 +36,6 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         */
         #endregion
         
-        protected EulerBeam2D()
-        { }
-
         public EulerBeam2D(double youngModulus)
         {
             this.youngModulus = youngModulus;
