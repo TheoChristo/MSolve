@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Beam2DSimpleExample.cs" />
-    <Compile Include="BeamBuildingBuilder.cs" />
+    <Compile Include="BeamBuildingBuilderWithStochasticMaterial.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.SamplesConsole
             PowerSpectrumTargetEvaluatorCoefficientsProvider stochasticProvider = new PowerSpectrumTargetEvaluatorCoefficientsProvider(10, 0.1, 1.2, 20, 200, DOFType.X,
                 0.1, 200, 1e-10);
 
-            BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
+            BeamBuildingBuilderWithStochasticMaterial.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
                 model.ElementsDictionary.Count + 1, 1, 4, false, false, stochasticProvider);
             model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
             model.ConnectDataStructures();

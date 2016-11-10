@@ -9,7 +9,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
-    public static class BeamBuildingBuilder
+    public static class BeamBuildingBuilderWithStochasticMaterial
     {
         private static Node GetNodeUnderNode(Model model, Node node)
         {
