@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.PreProcessor.Elements;
+using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.PreProcessor.Materials;
 using System;
 using System.Collections.Generic;
@@ -86,7 +87,7 @@ namespace ISAAR.MSolve.SamplesConsole
         }
 
         public static void MakeBeamBuilding(Model model, double startX, double startY, double startZ, double beamWidth, double beamHeight,
-            int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles)
+            int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles, IStochasticMaterialCoefficientsProvider stochasticProvider)
         {
             const int nodesPerFloor = 18;
 
@@ -202,7 +203,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus, poissonRatio, sub2AdjacentNodes, sub1AdjacentNodes)
+                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus, poissonRatio, sub2AdjacentNodes, sub1AdjacentNodes, stochasticProvider)
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
@@ -239,7 +240,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, sub1AdjacentNodes, groundAdjacentNodes)
+                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, sub1AdjacentNodes, groundAdjacentNodes, stochasticProvider)
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
@@ -286,7 +287,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, isInHexaSoil ? groundAdjacentNodes : null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, isInHexaSoil ? groundAdjacentNodes : null, null, stochasticProvider)
                     {
                         Density = 7.85,
                         SectionArea = b * h,
@@ -330,7 +331,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                             {
                                 Density = dens,
                                 SectionArea = b * h,
@@ -362,7 +363,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -392,7 +393,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -428,7 +429,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                            ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                             {
                                 Density = dens,
                                 SectionArea = b * h,
@@ -461,7 +462,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -492,7 +493,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null, stochasticProvider)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -523,7 +524,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                    ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus, poissonRatio, null, null, stochasticProvider)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -558,7 +559,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     e = new Element()
                     {
                         ID = elementID,
-                        ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus,poissonRatio, null, null)
+                        ElementType = new EulerBeam3DWithStochasticMaterial(youngModulus, poissonRatio, null, null, stochasticProvider)
                         {
                             Density = dens,
                             SectionArea = b * h,

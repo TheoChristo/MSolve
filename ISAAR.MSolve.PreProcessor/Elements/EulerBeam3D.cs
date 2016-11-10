@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         private static readonly DOFType[] nodalDOFTypes = new DOFType[6] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
         private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
         //private readonly IFiniteElementMaterial material; //TODO remove
-        private readonly double youngModulus;
-        private readonly double poissonRatio;
+        protected readonly double youngModulus;
+        protected readonly double poissonRatio;
         private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
         private const int hostDofsPerNode = 3;
         private const int embeddedDofsPerNode = 6;
@@ -73,8 +73,6 @@ namespace ISAAR.MSolve.PreProcessor.Elements
         */
         #endregion
 
-        protected EulerBeam3D()
-        { }
         
         public EulerBeam3D(double youngModulus, double poissonRatio)
         {

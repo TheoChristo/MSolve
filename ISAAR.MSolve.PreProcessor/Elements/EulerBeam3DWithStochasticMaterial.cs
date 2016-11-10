@@ -29,26 +29,32 @@ namespace ISAAR.MSolve.PreProcessor.Elements
 
     public class EulerBeam3DWithStochasticMaterial : EulerBeam3D
     {
-        private readonly double youngModulus;
-        private readonly double poissonRatio;
+        //private readonly double youngModulus;
+        //private readonly double poissonRatio;
         //protected readonly EulerBeam3DMemoizer memoizer;
         public IStochasticMaterialCoefficientsProvider CoefficientsProvider { get; set; }
 
 
-        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio)
-        {
-            this.youngModulus = youngModulus;
-            this.poissonRatio = poissonRatio;
-        }
+        //public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio)
+        //{
+        //    this.youngModulus = youngModulus;
+        //    this.poissonRatio = poissonRatio;
+        //}
 
         //public EulerBeam3DWithStochasticMaterial(double youngModulus, EulerBeam3DMemoizer memoizer) : this(youngModulus)
         //{
         //    this.memoizer = memoizer;
         //}
 
-        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, Node[] rot1Nodes, Node[] rot2Nodes)
-            : this(youngModulus, poissonRatio)
+        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IStochasticMaterialCoefficientsProvider coefficientsProvider) : base (youngModulus, poissonRatio)
         {
+            this.CoefficientsProvider = coefficientsProvider;
+        }
+
+        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, Node[] rot1Nodes, Node[] rot2Nodes, IStochasticMaterialCoefficientsProvider coefficientsProvider)
+            : this (youngModulus, poissonRatio, coefficientsProvider)
+        {
+            this.CoefficientsProvider = coefficientsProvider;
             if (rot1Nodes != null && rot1Nodes.Length != 4)
                 throw new ArgumentException("Dependent nodes quantity for rotation1 has to be four.");
             if (rot2Nodes != null && rot2Nodes.Length != 4)
@@ -59,13 +65,8 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             InitializeDOFsWhenNoRotations();
         }
 
-        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IStochasticMaterialCoefficientsProvider coefficientsProvider)
-            : this(youngModulus, poissonRatio)
-        {
-            this.CoefficientsProvider = coefficientsProvider;
-        }
-
-        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IFiniteElementDOFEnumerator dofEnumerator) : this(youngModulus, poissonRatio)
+        public EulerBeam3DWithStochasticMaterial(double youngModulus, double poissonRatio, IFiniteElementDOFEnumerator dofEnumerator, IStochasticMaterialCoefficientsProvider coefficientsProvider) 
+            : this(youngModulus, poissonRatio, coefficientsProvider)
         {
             this.dofEnumerator = dofEnumerator;
         }
@@ -233,18 +234,12 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double minY = element.Nodes[0].Y;
             double minZ = element.Nodes[0].Z;
 
-            for (int i = 0; i < 8; i++)
-            {
-                minX = minX > element.Nodes[i].X ? element.Nodes[i].X : minX;
-                minY = minY > element.Nodes[i].Y ? element.Nodes[i].Y : minY;
-                minZ = minZ > element.Nodes[i].Z ? element.Nodes[i].Z : minZ;
-                for (int j = i + 1; j < 8; j++)
-                {
-                    X = X < Math.Abs(element.Nodes[j].X - element.Nodes[i].X) ? Math.Abs(element.Nodes[j].X - element.Nodes[i].X) : X;
-                    Y = Y < Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) ? Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) : Y;
-                    Z = Z < Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) ? Math.Abs(element.Nodes[j].Z - element.Nodes[i].Z) : Z;
-                }
-            }
+            minX = minX > element.Nodes[0].X ? element.Nodes[0].X : minX;
+            minY = minY > element.Nodes[0].Y ? element.Nodes[0].Y : minY;
+            minZ = minZ > element.Nodes[0].Z ? element.Nodes[0].Z : minZ;
+            X = X < Math.Abs(element.Nodes[1].X - element.Nodes[0].X) ? Math.Abs(element.Nodes[1].X - element.Nodes[0].X) : X;
+            Y = Y < Math.Abs(element.Nodes[1].Y - element.Nodes[0].Y) ? Math.Abs(element.Nodes[1].Y - element.Nodes[0].Y) : Y;
+            Z = Z < Math.Abs(element.Nodes[1].Z - element.Nodes[0].Z) ? Math.Abs(element.Nodes[1].Z - element.Nodes[0].Z) : Z;
 
             double pointX = minX + X / 2;
             double pointY = minY + Y / 2;

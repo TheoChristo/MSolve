@@ -9,23 +9,6 @@ using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.PreProcessor.Elements
 {
-    //public class EulerBeam2DMemoizer
-    //{
-    //    private readonly Dictionary<int, Tuple<double[], double[,,]>> integrationDictionary = new Dictionary<int, Tuple<double[], double[,,]>>();
-
-    //    public Tuple<double[], double[,,]> GetIntegrationData(int element)
-    //    {
-    //        if (integrationDictionary.ContainsKey(element))
-    //            return integrationDictionary[element];
-    //        else
-    //            return new Tuple<double[], double[,,]>(null, null);
-    //    }
-
-    //    public void SetIntegrationData(int element, Tuple<double[], double[,,]> integrationData)
-    //    {
-    //        integrationDictionary.Add(element, integrationData);
-    //    }
-    //}
 
     public class EulerBeam2DWithStochasticMaterial : EulerBeam2D
     {
@@ -83,16 +66,10 @@ namespace ISAAR.MSolve.PreProcessor.Elements
             double minX = element.Nodes[0].X;
             double minY = element.Nodes[0].Y;
 
-            for (int i = 0; i < 2; i++)
-            {
-                minX = minX > element.Nodes[i].X ? element.Nodes[i].X : minX;
-                minY = minY > element.Nodes[i].Y ? element.Nodes[i].Y : minY;
-                for (int j = i + 1; j < 2; j++)
-                {
-                    X = X < Math.Abs(element.Nodes[j].X - element.Nodes[i].X) ? Math.Abs(element.Nodes[j].X - element.Nodes[i].X) : X;
-                    Y = Y < Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) ? Math.Abs(element.Nodes[j].Y - element.Nodes[i].Y) : Y;
-                }
-            }
+            minX = minX > element.Nodes[0].X ? element.Nodes[0].X : minX;
+            minY = minY > element.Nodes[0].Y ? element.Nodes[0].Y : minY;
+            X = X < Math.Abs(element.Nodes[1].X - element.Nodes[0].X) ? Math.Abs(element.Nodes[1].X - element.Nodes[0].X) : X;
+            Y = Y < Math.Abs(element.Nodes[1].Y - element.Nodes[0].Y) ? Math.Abs(element.Nodes[1].Y - element.Nodes[0].Y) : Y;
 
             double pointX = minX + X / 2;
             double pointY = minY + Y / 2;

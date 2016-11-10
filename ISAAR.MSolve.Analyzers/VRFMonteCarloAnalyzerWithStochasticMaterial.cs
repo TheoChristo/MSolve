@@ -45,7 +45,9 @@ namespace ISAAR.MSolve.Analyzers
 
         public IDictionary<int, SkylineMatrix2D<double>> FactorizedMatrices { get { return factorizedMatrices; } }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider, int expansionOrder, int simulations)
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, 
+            IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
+            IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider, int expansionOrder, int simulations)
         {
             this.childAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -61,31 +63,41 @@ namespace ISAAR.MSolve.Analyzers
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, 
+            ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
+            IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
             int expansionOrder, int simulations, string fileNameForLogging)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations)
         {
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
-            int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, 
+            IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
+            IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+            int expansionOrder, int simulations, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, 
+            string stiffnessMatrixPath)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, fileNameForLogging)
         {
             this.stiffnessMatrixPath = stiffnessMatrixPath;
             //this.stiffnessMatrixProductionMode = stiffnessMatrixProductionMode;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
-            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath)
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, 
+            IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
+            IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, 
+            string stiffnessMatrixPath)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.blockSize = blockSize;
         }
 
-        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
-            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName, 
-            int simulationStartFrom)
+        public VRFMonteCarloAnalyzerWithStochasticMaterial(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, 
+            IDictionary<int, ISolverSubdomain> subdomains, PowerSpectrumTargetEvaluatorCoefficientsProvider coefficientsProvider, 
+            IStochasticMaterialCoefficientsProvider approximateCoefficientsProvider,
+            int expansionOrder, int simulations, int blockSize, StiffnessMatrixProductionMode stiffnessMatrixProductionMode, string fileNameForLogging, 
+            string stiffnessMatrixPath, string randomsReadFileName, int simulationStartFrom)
             : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, approximateCoefficientsProvider, expansionOrder, simulations, blockSize, stiffnessMatrixProductionMode, fileNameForLogging, stiffnessMatrixPath)
         {
             this.randomsReadFileName = randomsReadFileName;
