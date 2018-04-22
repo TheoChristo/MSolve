@@ -149,6 +149,7 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             //SolveBuildingInNoSoilSmall();
             TrussExample.Run();
+            // commit example
         }
     }
 }
