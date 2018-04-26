@@ -11,5 +11,7 @@ namespace ISAAR.MSolve.FEM.Interfaces
         IList<Node> GetNodesForMatrixAssembly(Element element);
         IMatrix2D GetTransformedMatrix(IMatrix2D matrix);
         double[] GetTransformedVector(double[] vector);
+        // prosthiki MSolve
+        double[] GetTransformedForcesVector(double[] vector);
     }
 }

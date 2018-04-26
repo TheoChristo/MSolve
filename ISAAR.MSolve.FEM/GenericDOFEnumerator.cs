@@ -31,5 +31,10 @@ namespace ISAAR.MSolve.FEM
         {
             return vector;
         }
+
+        public double[] GetTransformedForcesVector(double[] vector)
+        {
+            return vector;
+        }
     }
 }
