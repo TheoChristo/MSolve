@@ -65,53 +65,55 @@ namespace ISAAR.MSolve.SamplesConsole
             { RVEExamplesBuilder.Reference2RVEExample_1_000_000withRenumbering_me_dev(model); }
 
 
+            #region
+            //model.ConnectDataStructures();
 
-            model.ConnectDataStructures();
+            //SolverSkyline solver = new SolverSkyline(model);
+            //ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
+            ////LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
+            ////gia 2CZM
+            ////Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
+            ////gia 3CZM
+            //int increments = 1;
+            //Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, increments, model.TotalDOFs);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
+            //StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, solver.SubdomainsDictionary);
+            //analyzer.SetMaxIterations = 100;
+            //analyzer.SetIterationsForMatrixRebuild = 1;
 
-            SolverSkyline solver = new SolverSkyline(model);
-            ProblemStructural provider = new ProblemStructural(model, solver.SubdomainsDictionary);
-            //LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
-            //gia 2CZM
-            //Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
-            //gia 3CZM
-            int increments = 1;
-            Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, increments, model.TotalDOFs);//1. increments einai to 1 (arxika eixame thesei2 26 incr)
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, solver.SubdomainsDictionary);
-            analyzer.SetMaxIterations = 100;
-            analyzer.SetIterationsForMatrixRebuild = 1;
+            //if (model__builder_choice==1)
+            //{
+            //    analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+            //model.NodalDOFsDictionary[12][DOFType.X],
+            //model.NodalDOFsDictionary[12][DOFType.Y],
+            //model.NodalDOFsDictionary[12][DOFType.Z]});
+            //}
 
-            if (model__builder_choice==1)
-            {
-                analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[12][DOFType.X],
-            model.NodalDOFsDictionary[12][DOFType.Y],
-            model.NodalDOFsDictionary[12][DOFType.Z]});
-            }
+            //if (model__builder_choice == 2)
+            //{
+            //    analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+            //model.NodalDOFsDictionary[12][DOFType.X],
+            //model.NodalDOFsDictionary[12][DOFType.Y],
+            //model.NodalDOFsDictionary[12][DOFType.Z]});
+            //}
 
-            if (model__builder_choice == 2)
-            {
-                analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[12][DOFType.X],
-            model.NodalDOFsDictionary[12][DOFType.Y],
-            model.NodalDOFsDictionary[12][DOFType.Z]});
-            }
+            //if (model__builder_choice == 3)
+            //{
+            //    analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
+            //model.NodalDOFsDictionary[12][DOFType.X],
+            //model.NodalDOFsDictionary[12][DOFType.Y],
+            //model.NodalDOFsDictionary[12][DOFType.Z]});
+            //}
 
-            if (model__builder_choice == 3)
-            {
-                analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[12][DOFType.X],
-            model.NodalDOFsDictionary[12][DOFType.Y],
-            model.NodalDOFsDictionary[12][DOFType.Z]});
-            }
+            //parentAnalyzer.BuildMatrices();
+            //parentAnalyzer.Initialize();
+            //parentAnalyzer.Solve();
 
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
+            ////Console.WriteLine("checkPoint1 reached");
+            //Console.WriteLine("Writing results for node 5");
+            //Console.WriteLine("Dof and Values for Displacement X, Y, Z");
+            //Console.WriteLine(analyzer.Logs[1][0]);
 
-            //Console.WriteLine("checkPoint1 reached");
-            Console.WriteLine("Writing results for node 5");
-            Console.WriteLine("Dof and Values for Displacement X, Y, Z");
-            Console.WriteLine(analyzer.Logs[1][0]);
+            #endregion
 
         }
 
