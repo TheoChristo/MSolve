@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // EPILOGH MONTELOU
             int model__builder_choice;
-            model__builder_choice =2;   // 9 einai to megalo me to renumbering pou tsekaretai
+            model__builder_choice =5;   // 9 einai to megalo me to renumbering pou tsekaretai
 
             
             if (model__builder_choice == 1) // 
@@ -40,66 +40,20 @@ namespace ISAAR.MSolve.SamplesConsole
             { RVEExamplesBuilder.Reference2RVEExample10000withRenumbering(model); }
             //if (model__builder_choice == 4) // 
             //{ DddmExamplesBuilder.Reference1RVEExample10000_Hexaonly(model); }
+            if (model__builder_choice == 5) // 
+            { RVEExamplesBuilder.Reference2RVEExample100_000withRenumbering_mono_hexa(model); }
+            if (model__builder_choice == 6) // 
+            { RVEExamplesBuilder.Reference2RVEExample500_000withRenumbering_mono_hexa(model); }
 
-            //Α
+            // i)
+            //DddmExamplesBuilder.MakeModelDictionariesZeroBasedForDecomposer(model);
 
-
-
-
-            //Β
-            //for (int i1 = 0; i1 < model.ElementsDictionary.Count; i1++)
-            //{ model.ElementsDictionary[i1 + 1].ID += -1; }
-            //for (int i1 = 0; i1 < model.NodesDictionary.Count; i1++)
-            //{ model.NodesDictionary[i1 + 1].ID += -1; }
-
-            //C
-            model.SubdomainsDictionary[1].ID = 0;
-            Subdomain subdomain_ini = model.SubdomainsDictionary[1];
-            model.SubdomainsDictionary.Remove(1);
-            model.SubdomainsDictionary.Add(0, subdomain_ini);
-
-            Dictionary<int, Element> ElementsDictionary_2 = new Dictionary<int, Element>(model.ElementsDictionary.Count);
-            for (int i1 = 0; i1 < model.ElementsDictionary.Count; i1++)
-            {
-                ElementsDictionary_2.Add(model.ElementsDictionary[i1 + 1].ID - 1, model.ElementsDictionary[i1 + 1]);
-                ElementsDictionary_2[model.ElementsDictionary[i1 + 1].ID - 1].ID += -1;
-            }
-            int nElement = model.ElementsDictionary.Count;
-            for (int i1 = 0; i1 < nElement; i1++)
-            {
-                model.ElementsDictionary.Remove(i1 + 1);
-                model.SubdomainsDictionary[0].ElementsDictionary.Remove(i1 + 1);
-            }
-            for (int i1 = 0; i1 < nElement; i1++)
-            {
-                model.ElementsDictionary.Add(ElementsDictionary_2[i1].ID, ElementsDictionary_2[i1]);
-                model.SubdomainsDictionary[0].ElementsDictionary.Add(ElementsDictionary_2[i1].ID, ElementsDictionary_2[i1]);
-            }
-
-            Dictionary<int, Node> NodesDictionary_2 = new Dictionary<int, Node>(model.NodesDictionary.Count);
-            for (int i1 = 0; i1 < model.NodesDictionary.Count; i1++)
-            {
-                NodesDictionary_2.Add(model.NodesDictionary[i1 + 1].ID - 1, model.NodesDictionary[i1 + 1]);
-                NodesDictionary_2[model.NodesDictionary[i1 + 1].ID - 1].ID += -1;
-            }
-
-            int nNode = model.NodesDictionary.Count;
-            for (int i1 = 0; i1 < nNode; i1++)
-            {
-                model.NodesDictionary.Remove(i1 + 1);
-                //model.SubdomainsDictionary[0].NodesDictionary.Remove(i1 + 1);
-            }
-            for (int i1 = 0; i1 < nNode; i1++)
-            {
-                model.NodesDictionary.Add(NodesDictionary_2[i1].ID, NodesDictionary_2[i1]);
-                //model.SubdomainsDictionary[0].NodesDictionary.Add(NodesDictionary_2[i1].ID, NodesDictionary_2[i1]);
-            }
 
             model.ConnectDataStructures();
 
-            //PITHANH PROSTHIKI
-            AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 2); //2o orisma arithmoos subdomains
-            domainDecomposer.UpdateModel();
+            // ii)
+            //AutomaticDomainDecomposer domainDecomposer = new AutomaticDomainDecomposer(model, 2); //2o orisma arithmoos subdomains
+            //domainDecomposer.UpdateModel();
 
 
             //comment section 1 palaia version
@@ -108,7 +62,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically 
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            SolverSkyline2 solver = new SolverSkyline2(linearSystems[1]);
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
 
@@ -124,8 +78,6 @@ namespace ISAAR.MSolve.SamplesConsole
             StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
 
             analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 47 });
-
-
 
 
 
