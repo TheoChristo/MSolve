@@ -2021,7 +2021,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
         // prosthiki print
         static int ox_sunol_counter = 0;
-        static string string2 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output\ox_sunol_MOSLVE_{0}.txt";
+        static string string2 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\ox_sunol_MOSLVE_{0}.txt";
         // prosthiki print ews edw
 
         public static double[] ox_sunol_Builder_ekk_with_o_x_parameters(int new_rows, int new_lines, double L1, double L2, int elem1, int elem2, double a1_shell, double[] ekk_xyz,o_x_parameters o_x_paramters)
