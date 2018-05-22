@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // EPILOGH MONTELOU
             int model__builder_choice;
-            model__builder_choice =5;   // 9 einai to megalo me to renumbering pou tsekaretai
+            model__builder_choice =8;   // 9 einai to megalo me to renumbering pou tsekaretai
 
             
             if (model__builder_choice == 1) // 
@@ -62,22 +62,33 @@ namespace ISAAR.MSolve.SamplesConsole
 
             var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically 
             linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline2 solver = new SolverSkyline2(linearSystems[1]);
+            
             ProblemStructural provider = new ProblemStructural(model, linearSystems);
 
 
             // PARADEIGMA A: LinearAnalyzer analyzer = new LinearAnalyzer(solver, solver.SubdomainsDictionary);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
+            //SolverSkyline2 solver = new SolverSkyline2(linearSystems[1]); //H MARIA XRHSIMOPOIEI TON sklinesolver 
+            //LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
             //---------------------------------------------------------------------------------------------------------------------------------
 
             // PARADEIGMA B: Analyzers.NewtonRaphsonNonLinearAnalyzer3 analyzer = new NewtonRaphsonNonLinearAnalyzer3(solver, solver.SubdomainsDictionary, provider, 17, model.TotalDOFs);//1. increments einai to 17 (arxika eixame thesei2 26 incr)
-            //NewtonRaphsonNonLinearAnalyzer analyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems, provider, 10, 48);
+            //PALIA DIATUPWSH: NewtonRaphsonNonLinearAnalyzer analyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystems, provider, 10, 48); 
+            // NEA DIATUPWSH:
+            var solver = new SolverSkyline(linearSystems[1]);
+            var linearSystemsArray = new[] { linearSystems[1] };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
+            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
+
+            var increments = 1;
+            var childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers, provider, increments, model.TotalDOFs);
+            childAnalyzer.SetMaxIterations = 100;
+            childAnalyzer.SetIterationsForMatrixRebuild = 1;
             //---------------------------------------------------------------------------------------------------------------------------------
 
 
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
 
-            analyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 47 });
+            childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 47 });
 
 
 
