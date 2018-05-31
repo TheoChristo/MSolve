@@ -14,7 +14,7 @@ using ISAAR.MSolve.PreProcessor.Embedding;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class RandomGrapheneStochasticModelBuilder : IStochasticModelBuilder
+    public class RandomGrapheneModelBuilder : IStochasticModelBuilder
     {
         private readonly Model model;
         static int ox_sunol_counter = 0;
@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Analyzers
         //private readonly double[] ekk_xyz;
         //private readonly o_x_parameters o_x_parameters;
 
-        public RandomGrapheneStochasticModelBuilder(Model model, IList<IStochasticCoefficientsProvider2D> coefficientsProviders, int graphene_sheets_number, Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp)
+        public RandomGrapheneModelBuilder(Model model, IList<IStochasticCoefficientsProvider2D> coefficientsProviders, int graphene_sheets_number, Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp)
         {
             // Perioxh parametroi Graphene sheet
             // parametroi shell
