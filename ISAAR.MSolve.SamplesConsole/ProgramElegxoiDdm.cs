@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // EPILOGH MONTELOU
             int model__builder_choice;
-            model__builder_choice =8;   // 9 einai to megalo me to renumbering pou tsekaretai
+            model__builder_choice =4;   // 9 einai to megalo me to renumbering pou tsekaretai
 
             
             if (model__builder_choice == 1) // 
@@ -40,6 +40,8 @@ namespace ISAAR.MSolve.SamplesConsole
             { RVEExamplesBuilder.Reference2RVEExample10000withRenumbering(model); }
             //if (model__builder_choice == 4) // 
             //{ DddmExamplesBuilder.Reference1RVEExample10000_Hexaonly(model); }
+            if (model__builder_choice == 4) // 
+            { RVEExamplesBuilder.FewElementsRVECheckExample2GrapheneSheets(model); }
             if (model__builder_choice == 5) // 
             { RVEExamplesBuilder.Reference2RVEExample100_000withRenumbering_mono_hexa(model); }
             if (model__builder_choice == 6) // 

@@ -6,6 +6,7 @@ using System.Text;
 using System.Runtime;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.ModelUpdaters;
 using ISAAR.MSolve.Solvers.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 using System.IO;
@@ -17,15 +18,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Analyzers
 { 
-    public enum UncertainParameterType
-    {
-        Geometry,
-        Material,
-        Load
-    }
-   
-
-public class MonteCarloAnalyzerTemp : IAnalyzer
+    public class MonteCarloAnalyzerTemp : IAnalyzer
     {
         private int currentSimulation = -1;
         private readonly int blockSize = 5;
@@ -49,15 +42,15 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
         private IAnalyzer parentAnalyzer = null;
         private readonly string fileNameForLogging = "monteCarlo";
         private readonly IStochasticCoefficientsProvider coefficientsProvider;
+        private readonly IStochasticModelBuilder stochasticModelBuilder;
         private readonly List<int> matrixOrder = new List<int>();
         private readonly List<double> matrixMagnitudes = new List<double>();
-        private readonly UncertainParameterType[] typeOfUncertainty = new UncertainParameterType[2];
 
         public IDictionary<int, SkylineMatrix2D> FactorizedMatrices { get { return factorizedMatrices; } }
 
 
-        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticCoefficientsProvider coefficientsProvider,
-            int DOFToMonitor, int simulations, IList<IModelUpdater> modelUpdaters)
+        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains,
+            IStochasticModelBuilder stochasticModelBuilder, int DOFToMonitor, int simulations)
         {
             this.childAnalyzer = embeddedAnalyzer;
             this.provider = provider;
@@ -68,49 +61,40 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
             this.childAnalyzer.ParentAnalyzer = this;
             //this.matrices = new Dictionary<int, IMatrix2D<double>>(subdomains.Count);
             //this.matrices = new Dictionary<int, IMatrix2D>[expansionOrder + 1];
-            this.coefficientsProvider = coefficientsProvider;
-            this.typeOfUncertainty = typeOfUncertainty;
+            this.stochasticModelBuilder = stochasticModelBuilder;
+            //this.typeOfUncertainty = typeOfUncertainty;
             //this.stochasticDomain = stochasticDomain;
         }
 
-        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticCoefficientsProvider coefficientsProvider,
-            int DOFToMonitor, int simulations, string fileNameForLogging)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, DOFToMonitor, simulations)
+        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains,
+            IStochasticModelBuilder stochasticModelBuilder, int DOFToMonitor, int simulations, string fileNameForLogging)
+            : this(model, provider, embeddedAnalyzer, subdomains, stochasticModelBuilder, DOFToMonitor, simulations)
         {
             this.fileNameForLogging = fileNameForLogging;
         }
 
-        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticCoefficientsProvider coefficientsProvider,
-            int DOFToMonitor, int simulations, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, DOFToMonitor, simulations, fileNameForLogging)
+        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains,
+            IStochasticModelBuilder stochasticModelBuilder, int DOFToMonitor, int simulations, string fileNameForLogging, string stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, subdomains, stochasticModelBuilder, DOFToMonitor, simulations, fileNameForLogging)
         {
             this.stiffnessMatrixPath = stiffnessMatrixPath;
         }
 
-        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticCoefficientsProvider coefficientsProvider,
-            int DOFToMonitor, int simulations, int blockSize, string fileNameForLogging, string stiffnessMatrixPath)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, DOFToMonitor, simulations, fileNameForLogging, stiffnessMatrixPath)
+        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains,
+            IStochasticModelBuilder stochasticModelBuilder, int DOFToMonitor, int simulations, int blockSize, string fileNameForLogging, string stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, subdomains, stochasticModelBuilder, DOFToMonitor, simulations, fileNameForLogging, stiffnessMatrixPath)
         {
             this.blockSize = blockSize;
         }
 
-        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains, IStochasticCoefficientsProvider coefficientsProvider,
-            int simulations, int blockSize, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName,
+        public MonteCarloAnalyzerTemp(Model model, IAnalyzerProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains,
+            IStochasticModelBuilder stochasticModelBuilder, int DOFToMonitor, int simulations, int blockSize, string fileNameForLogging, string stiffnessMatrixPath, string randomsReadFileName,
             int simulationStartFrom)
-            : this(model, provider, embeddedAnalyzer, subdomains, coefficientsProvider, simulations, blockSize, fileNameForLogging, stiffnessMatrixPath)
+            : this(model, provider, embeddedAnalyzer, subdomains, stochasticModelBuilder, DOFToMonitor, simulations, blockSize, fileNameForLogging, stiffnessMatrixPath)
         {
             this.randomsReadFileName = randomsReadFileName;
             this.simulationStartFrom = simulationStartFrom;
         }
-
-        //private void InitializeCoefficientsProvider()
-        //{
-        //    //coefficientsProvider = new FileStochasticCoefficientsProvider("Lognormal.csv", stochasticDomain);
-        //    //coefficientsProvider = new FileStochasticCoefficientsProvider("Gaussian.txt", 50, '\t', stochasticDomain);
-        //    foreach (var subdomain in model.Subdomains)
-        //        foreach (var e in subdomain.ElementsDictionary.Values.Where(e => e.ElementType is IStochasticFiniteElement))
-        //            ((IStochasticFiniteElement)e.ElementType).CoefficientsProvider = coefficientsProvider;
-        //}
 
         #region IAnalyzer Members
 
@@ -130,159 +114,28 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
         public void BuildMatrices()
         {
             if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
-            //if (currentSimulation < 0)
-            //{
-            //    if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate)
-            //    {
-            //        var fileName = String.Format(@"{0}-Order.txt", fileNameForLogging);
-            //        using (var sw = File.OpenText(fileName))
-            //        {
-            //            while (!sw.EndOfStream)
-            //                matrixOrder.Add(Int32.Parse(sw.ReadLine()));
-            //        }
-            //    }
-            //    return;
-            //}
-
-            //if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate)
-            //    ReadMatricesFromFile(currentSimulation);
-            //else
-            //{
             provider.Reset();
             childAnalyzer.BuildMatrices();
-            //}
-            //WriteMatricesToFile(currentSimulation);
         }
 
-        //private void ComposeStochasticMatrixFromMatrices()
-        //{
-        //    var currentRandomNumbers = randomNumbers[currentSimulation];
-        //    var coefficients = new double[] { 1 }.Concat(currentRandomNumbers).ToList<double>();
-        //    var matricesPerSubdomain = new Dictionary<int, IMatrix2D<double>[]>();
-        //    foreach (var subdomain in subdomains.Values)
-        //    {
-        //        int id = subdomain.ID;
-        //        var tempMatrices = new IMatrix2D<double>[expansionOrder + 1];
-        //        for (int i = 0; i <= expansionOrder; i++)
-        //            tempMatrices[i] = matrices[i][id];
-        //        matricesPerSubdomain.Add(id, tempMatrices);
-        //    }
-
-        //    foreach (var subdomain in subdomains.Values)
-        //        subdomain.Matrix = (SkylineMatrix2D<double>)((SkylineMatrix2D<double>)matrices[0][subdomain.ID]).Clone();
-        //    foreach (var subdomain in subdomains.Values)
-        //        subdomain.Matrix.LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
-
-
-        //    //for (int i = 0; i < expansionOrder; i++)
-        //    //{
-        //    //    foreach (var subdomain in subdomains.Values)
-        //    //    {
-        //    //        SkylineMatrix2D<double> k = (SkylineMatrix2D<double>)matrices[i + 1][subdomain.ID];
-        //    //        subdomain.Matrix.LinearCombination(new double[] { randomNumbers[currentSimulation][i] }, new IMatrix2D<double>[] { k });
-        //    //    }
-        //    //}
-        //}
 
         public void Initialize()
         {
             if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 
-            //if (String.IsNullOrEmpty(randomsReadFileName))
-            //{
-            //    randomNumbers = new double[simulations][];
-            //    NormalDistribution n = new NormalDistribution();
-            //    n.Mu = 0;
-            //    n.Sigma = 1;
-            //    string[] randoms = new string[simulations];
-            //    for (int i = 0; i < simulations; i++)
-            //    {
-            //        randomNumbers[i] = new double[expansionOrder];
-            //        for (int j = 0; j < expansionOrder; j++)
-            //            randomNumbers[i][j] = n.NextDouble();
-            //    }
-            //    //using (var sw = File.CreateText(String.Format(@"randoms{0}.txt", expansionOrder)))
-            //    //{
-            //    //    for (int j = 0; j < expansionOrder; j++)
-            //    //        for (int i = 0; i < simulations; i++)
-            //    //            sw.WriteLine(randomNumbers[i][j]);
-            //    //}
-            //}
-            //else
-            //{
-            //    randomNumbers = new double[randomFileSimulations][];
-            //    for (int i = 0; i < randomFileSimulations; i++)
-            //        randomNumbers[i] = new double[expansionOrder];
-            //    using (var sw = File.OpenText(randomsReadFileName))
-            //    {
-            //        for (int j = 0; j < expansionOrder; j++)
-            //            for (int i = 0; i < randomFileSimulations; i++)
-            //                randomNumbers[i][j] = Double.Parse(sw.ReadLine());
-            //    }
-            //}
-
-            //if (stiffnessMatrixProductionMode != StiffnessMatrixProductionMode.LoadFromDiskAndCalculate) return;
-        }
-
-        public void GeometryUpdate()
-        {
-            
-            throw new NotImplementedException();
-        }
-
-        public void LoadUpdate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateModel()
-        {
-            for (int i=0; i<3; i++)
-            {
-                switch (typeOfUncertainty[i])
-                {
-                    case typeOfUncertainty[i].Geometry:
-                        GeometryUpdate();
-                        break;
-                    case typeOfUncertainty[i].Material:
-                        break;
-                    case typeOfUncertainty[i].Load:
-                        LoadUpdate();
-                        break;
-                }
-            }
-            return;
         }
 
         public void Solve()
         {
             if (childAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
-
-            //if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate)
-            //    SolveWithOrder();
-            //else
             SolveNormal();
         }
 
         private void SolveNormal()
         {
-            //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
-            //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = DOFToMonitor; //model.Subdomains[0].GlobalNodalDOFsDictionary[2][DOFType.Y];
-            //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
-            //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
-            //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
-            //int dofNo = model.Subdomains[36].NodalDOFsDictionary[6051][DOFType.Y];
+            int dofNo = DOFToMonitor;
             string[] values = new string[simulations];
             double[] numberValues = new double[simulations];
-            //var fileName = String.Format(@"{0}-{1}-{2}.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
-            //var fileNameIterations = String.Format(@"{0}-{1}-{2}-Iters.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
-            //var fileNameTimes = String.Format(@"{0}-{1}-{2}-Times.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
-            //StreamWriter sw;
-            ////sw = File.CreateText(fileName);
-            //sw.Dispose();
-            //sw = File.CreateText(fileNameIterations);
-            //sw.Dispose();
             var times = new Dictionary<string, TimeSpan>();
             times.Add("all", TimeSpan.Zero);
             times.Add("element", TimeSpan.Zero);
@@ -293,17 +146,11 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
             int totalIterations = 0;
             for (int i = simulationStartFrom; i < simulationStartFrom + simulations; i++)
             {
-                foreach (var modelUpdater in ModelUpdaters)
-                {
-                    modelUpdater.UpdateModel();
-                }
                 currentSimulation = i;
-                coefficientsProvider.RandomVariables = randomNumbers[currentSimulation];
-                UpdateModel();
+                stochasticModelBuilder.BuildStochasticModel();
                 var e = DateTime.Now;
                 BuildMatrices();
                 times["element"] += DateTime.Now - e;
-                //if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                 e = DateTime.Now;
                 childAnalyzer.Initialize();
@@ -316,28 +163,12 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
                 GCSettings.LatencyMode = GCLatencyMode.Batch;
                 values[i - simulationStartFrom] = subdomains[0].Solution[dofNo].ToString();
                 numberValues[i - simulationStartFrom] = subdomains[0].Solution[dofNo];
-                //values[i] = subdomains[36].Solution[dofNo].ToString();
-
-                //values[i] = matrixMagnitudes[i].ToString();
-                //using (sw = File.AppendText(fileName))
-                //    sw.WriteLine(values[i - simulationStartFrom]);
-                //using (sw = File.AppendText(fileNameIterations))
-                //    sw.WriteLine(iterationCount[i - simulationStartFrom].ToString());
-                //using (sw = File.CreateText(fileNameTimes))
-                //{
-                //    sw.WriteLine(String.Format("Elements: {0}", times["element"].ToString()));
-                //    sw.WriteLine(String.Format("Factorize: {0}", times["factorize"].ToString()));
-                //    sw.WriteLine(String.Format("Solution: {0}", times["solution"].ToString()));
-                //    sw.WriteLine(String.Format("All: {0}", times["all"].ToString()));
-                //    sw.WriteLine(String.Format("Total iterations: {0}", totalIterations.ToString()));
-                //}
             }
             MonteCarloMeanValue = numberValues.Average();
             double sumOfSquaresOfDifferences = numberValues.Select(val => (val - MonteCarloMeanValue) * (val - MonteCarloMeanValue)).Sum();
             MonteCarloStandardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / numberValues.Length);
             times["all"] = DateTime.Now - start;
 
-            //File.WriteAllLines(String.Format(@"{0}-{1}.txt", fileNameForLogging, expansionOrder), values);
         }
 
         public double MonteCarloMeanValue { get; set; }
@@ -412,41 +243,6 @@ public class MonteCarloAnalyzerTemp : IAnalyzer
             File.WriteAllLines(String.Format(@"{0}-Times-{1}-{2}.txt", fileNameForLogging, blockSize, simulationStartFrom), s);
         }
 
-        //private void WriteMatricesToFile(int simulation)
-        //{
-        //    if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.Normal || stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.LoadFromDiskAndCalculate) return;
-        //    string name = String.IsNullOrWhiteSpace(stiffnessMatrixPath) ? "K" : stiffnessMatrixPath;
-
-        //    string path = Path.GetDirectoryName(name);
-        //    string nameOnly = Path.GetFileNameWithoutExtension(name);
-        //    string ext = Path.GetExtension(name);
-
-        //    //foreach (var sub in subdomains)
-        //    //    sub.Value.Matrix.WriteToFile(String.Format(@"{0}\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, simulation));
-        //}
-
-        //private void ReadMatricesFromFile(int simulation)
-        //{
-        //    if (stiffnessMatrixProductionMode != StiffnessMatrixProductionMode.LoadFromDiskAndCalculate) return;
-        //    string name = String.IsNullOrWhiteSpace(stiffnessMatrixPath) ? "K" : stiffnessMatrixPath;
-
-        //    string path = Path.GetDirectoryName(name);
-        //    string nameOnly = Path.GetFileNameWithoutExtension(name);
-        //    string ext = Path.GetExtension(name);
-
-        //    foreach (var sub in subdomains)
-        //    {
-        //        if (sub.Value.Matrix == null)
-        //            sub.Value.Matrix = new SkylineMatrix2D(new int[0]);
-        //        var m = (SkylineMatrix2D)sub.Value.Matrix;
-        //        m.ReadFromFile(String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, sub.Key, simulation));
-
-        //        //double d = 0;
-        //        //for (int i = 0; i < m.RowIndex.Length - 1; i++)
-        //        //    d += m.Data[m.RowIndex[i]];
-        //        //matrixMagnitudes.Add(d / (double)m.RowIndex.Length);
-        //    }
-        //}
 
         #endregion
     }

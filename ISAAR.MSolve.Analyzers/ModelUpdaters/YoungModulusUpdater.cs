@@ -13,29 +13,19 @@ namespace ISAAR.MSolve.Analyzers.ModelUpdaters
     {
         private Model model;
         private double youngModulus;
+        private IStochasticCoefficientsProvider coefficientsProvider;
 
         IList<IFiniteElement> listofFiniteElements;
-        public YoungModulusUpdater(Model model, IStochasticCoefficientsProvider coefficientsProvider)
+        public YoungModulusUpdater(Model model, double youngModulus, IStochasticCoefficientsProvider coefficientsProvider)
         {
             this.model = model;
-
-
-        }
-        public void UpdateModel<T>() where T:IFiniteElement
-        {
-            foreach (var element in model.Elements)
-            {
-                
-            }
-            throw new NotImplementedException();
+            this.youngModulus = youngModulus;
+            this.coefficientsProvider = coefficientsProvider;
         }
 
         public void UpdateModel()
         {
-            foreach (var element in model.Elements.Where(e=> listofFiniteElements.Contains(e.ElementType.GetType().)))
-            {
-                element.ElementType.
-            }
+            throw new NotImplementedException();
         }
     }
 }

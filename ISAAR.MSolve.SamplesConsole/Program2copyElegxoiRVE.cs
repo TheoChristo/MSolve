@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // EPILOGH MONTELOU
             int model__builder_choice;
-            model__builder_choice =16;   // 9 einai to megalo me to renumbering pou tsekaretai
+            model__builder_choice =4;   // 9 einai to megalo me to renumbering pou tsekaretai
 
             if (model__builder_choice == 1) // 
             { RVEExamplesBuilder.OneElementRVECheckExampleConstrained(model); }

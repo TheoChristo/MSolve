@@ -9,17 +9,18 @@ using System.Text;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;//using ISAAR.MSolve.Matrices.Interfaces;
 using System.Runtime.InteropServices;
+using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
 // compa
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Elements;
-
+using ISAAR.MSolve.FEM.Interfaces;
 
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     class RVEExamplesBuilder
-    {       
+    {   SpectralRepresentation2DRandomField coefficientsProvider = new SpectralRepresentation2DRandomField(10, 10, 0.1, .05, .1, 200, .01);  
         public static void HexaElementsOnlyRVE(Model model,rveMatrixParameters mp,double [,] Dq)
         {
             // Perioxh parametroi Rve Matrix
@@ -779,6 +780,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double D_f_1 = gp.D_f_1; // nm
 
             double n_curve = gp.n_curve;
+            SpectralRepresentation2DRandomField coefficientsProvider = new SpectralRepresentation2DRandomField(10, 10, 0.1, .05, .1, 200, .01);
             // Perioxh parametroi Graphene sheet ews edw
 
 
@@ -797,7 +799,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodeCoordY;
             double nodeCoordZ;
 
-            o_xsunol = ox_sunol_Builder_ekk_with_o_x_parameters(new_rows, new_lines, L1, L2, elem1, elem2, a1_shell, ekk_xyz,o_x_parameters);
+            o_xsunol = ox_sunol_Builder_ekk_with_o_x_parameters(new_rows, new_lines, L1, L2, elem1, elem2, a1_shell, ekk_xyz,o_x_parameters, coefficientsProvider);
 
             for (int nNode = 0; nNode < o_xsunol.GetLength(0) / 6; nNode++) //nNode einai zero based
             {
@@ -1015,6 +1017,7 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             // Perioxh renumbering initialization 
             renumbering renumbering = new renumbering(PrintUtilities.ReadIntVector(renumberingVectorPath));
+            SpectralRepresentation2DRandomField coefficientsProvider = new SpectralRepresentation2DRandomField(10, 10, 0.1, .05, .1, 200, .01);
             // perioxh renumbering initialization ews edw 
 
             // Perioxh parametroi Graphene sheet
@@ -1058,7 +1061,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodeCoordY;
             double nodeCoordZ;
 
-            o_xsunol = ox_sunol_Builder_ekk_with_o_x_parameters(new_rows, new_lines, L1, L2, elem1, elem2, a1_shell, ekk_xyz, o_x_parameters);
+            o_xsunol = ox_sunol_Builder_ekk_with_o_x_parameters(new_rows, new_lines, L1, L2, elem1, elem2, a1_shell, ekk_xyz, o_x_parameters, coefficientsProvider);
 
             for (int nNode = 0; nNode < o_xsunol.GetLength(0) / 6; nNode++) //nNode einai zero based
             {
@@ -2024,7 +2027,9 @@ namespace ISAAR.MSolve.SamplesConsole
         static string string2 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\ox_sunol_MOSLVE_{0}.txt";
         // prosthiki print ews edw
 
-        public static double[] ox_sunol_Builder_ekk_with_o_x_parameters(int new_rows, int new_lines, double L1, double L2, int elem1, int elem2, double a1_shell, double[] ekk_xyz,o_x_parameters o_x_paramters)
+        public static double[] ox_sunol_Builder_ekk_with_o_x_parameters(int new_rows, int new_lines,
+            double L1, double L2, int elem1, int elem2, double a1_shell, double[] ekk_xyz,o_x_parameters o_x_paramters,
+            SpectralRepresentation2DRandomField coefficientsProvider)
         {
             double[] o_xsunol = new double[6 * new_lines * new_rows];
             int npoint;
@@ -2048,11 +2053,13 @@ namespace ISAAR.MSolve.SamplesConsole
                     heta_1 = (nline + 1 - 1) * (L2 / (2 * elem2));
                     o_xsunol[6 * (npoint - 1) + 1 - 1] = ksi_1 - 0.5 * L1 + ekk_xyz[0];
                     o_xsunol[6 * (npoint - 1) + 2 - 1] = heta_1 - 0.5 * L2 + ekk_xyz[1];
-                    o_xsunol[6 * (npoint - 1) + 3 - 1] = a1_shell * Math.Sin(k1 * ksi_1) * Math.Sin(l1 * heta_1) + ekk_xyz[2];
+                    //o_xsunol[6 * (npoint - 1) + 3 - 1] = a1_shell * Math.Sin(k1 * ksi_1) * Math.Sin(l1 * heta_1) + ekk_xyz[2];
+                    o_xsunol[6 * (npoint - 1) + 3 - 1] += coefficientsProvider.GetCoefficient(0, new double[2] {ksi_1, heta_1});
 
-                    e_ksi_1 = new double[] { 1, 0, a1_shell * k1 * Math.Cos(k1 * ksi_1) * Math.Sin(l1 * heta_1) };
-                    e_heta_1 = new double[] { 0, 1, a1_shell * l1 * Math.Sin(k1 * ksi_1) * Math.Cos(l1 * heta_1) };
-
+                    //e_ksi_1 = new double[] { 1, 0, a1_shell * k1 * Math.Cos(k1 * ksi_1) * Math.Sin(l1 * heta_1) };
+                    //e_heta_1 = new double[] { 0, 1, a1_shell * l1 * Math.Sin(k1 * ksi_1) * Math.Cos(l1 * heta_1) };
+                    e_ksi_1 = new double[] { 1, 0, coefficientsProvider.GetDerivative(new double[2]{ksi_1, heta_1})[0] };
+                    e_heta_1 = new double[] { 0, 1, coefficientsProvider.GetDerivative(new double[2] { ksi_1, heta_1 })[1] };
                     cross(e_ksi_1, e_heta_1, e_3);
                     e_3norm = Math.Sqrt(Math.Pow(e_3[0], 2) + Math.Pow(e_3[1], 2) + Math.Pow(e_3[2], 2));
 
