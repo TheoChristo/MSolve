@@ -30,10 +30,10 @@ namespace MGroup.Stochastic
             var systemResponse = new double[systemResponseDimension];
             MeanValueResponse = new double[systemResponseDimension];
             StandardDeviationResponse = new double[systemResponseDimension];
-            systemResponse = SystemResponseEvaluator.Evaluate(0);
-            for (int i = 0; i < systemResponse.Length; i++)
+            //systemResponse = SystemResponseEvaluator.Evaluate(0);
+            for (int i = 0; i < systemResponseDimension; i++)
             {
-                MeanValueResponse[i] += systemResponse[i];
+                MeanValueResponse[i] += SystemResponseEvaluator.Evaluate(0)[i];
             }
 
             for (int i = 1; i < NoOfIterations; i++)
