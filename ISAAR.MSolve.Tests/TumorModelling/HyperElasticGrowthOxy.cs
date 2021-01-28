@@ -61,13 +61,9 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static async void RunTest()
         {
-
             await InitModelsAsync();
-
             var models = new[] { oxModel.Item1, gModel.Item1 };
             var modelReaders = new[] { oxModel.Item2, gModel.Item2 };
-
-
             //var modelTuple3 = CreateStructuralModel(10e4, 0, new DynamicMaterial(.001, 0, 0, true), 0, new double[] { 0, 0, 0 });
             //IVectorView[] solutions = SolveModels(models, modelReaders);
             IVectorView[] solutions = SolveModelsWithNewmark(models, modelReaders);
@@ -159,40 +155,77 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static async Task InitModelsAsync()
         {
-            var oxTask = InitOxygenTransportModelAsync();
-            var grTask = InitGrowthtModelAsync();
             var strTask = InitStructuralModelAsync();
-            var tasks = new List<Task> { oxTask, grTask, strTask };
-
-            await Task.WhenAll(tasks);
-            oxModel = oxTask.Result;
-            gModel = grTask.Result;
-            structModel = strTask.Result;
+            await CreateModelsAsync();
+            structModel = await strTask;
         }
 
-        private static async Task <Tuple<Model, IModelReader>> InitOxygenTransportModelAsync()
+        private static async Task CreateModelsAsync()
         {
+            Console.WriteLine("Reading Model Files");
             var DoxDays = new double[Dox.Length];
-            for (int i = 0; i<Dox.Length; i++)
+            for (int i = 0; i < Dox.Length; i++)
             {
                 DoxDays[i] = 24 * 3600 * Dox[i];
             }
-            return await Task.Run(() => CreateOxygenTransportModel(DoxDays, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement));
+            var oxFileTask = ReadOxygenModelFromFile(DoxDays, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 });
+            var grFileTask = ReadGrowthModelFromFile(0, new double[] { 0, 0, 0 }, 0);
+            var FileTasks = new List<Task> { oxFileTask, grFileTask };
+
+            await Task.WhenAll(FileTasks);
+            oxModel = oxFileTask.Result;
+            gModel = grFileTask.Result;
+            c_oxElement = new double[oxModel.Item1.Elements.Count];
+            for (int i = 0; i < oxModel.Item1.Elements.Count; i++) c_oxElement[i] = 0;/* 0.9673;*/
+            Console.WriteLine("Reading models files finished");
+
+
+            Console.WriteLine("Creating Models");
+            var oxTask = Task.Run(() => CreateOxygenTransportModel(DoxDays, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement, true));
+            var grTask = Task.Run(() => CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement, true));
+            var modeltasks = new List<Task> { oxTask, grTask };
+
+            await Task.WhenAll(modeltasks);
+            oxModel = oxTask.Result;
+            gModel = grTask.Result;
+            Console.WriteLine("Models Created");
         }
 
-        private static async Task<Tuple<Model, IModelReader>> InitGrowthtModelAsync()
+        private static async Task<Tuple<Model, IModelReader>> ReadOxygenModelFromFile(double[] k, double[][] U, double[] L)
         {
-            return await Task.Run(() => CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement));
+            ComsolMeshReader2 modelReader;
+            Model model;
+            Console.WriteLine("\tReading Oxygen File ");
+            string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
+            modelReader = new ComsolMeshReader2(filename, k, U, L);
+            model = await Task.Run(()=> modelReader.CreateModelFromFile());
+            Console.WriteLine("\tReading Oxygen File completed");
+            return new Tuple<Model, IModelReader>(model, modelReader);
+        }
+
+        private static async Task<Tuple<Model, IModelReader>> ReadGrowthModelFromFile(double k, double[] U, double L)
+        {
+            ComsolMeshReader3 modelReader;
+            Model model;
+            Console.WriteLine("\tReading Growth File Model");
+            string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
+            int[] modelDomains = new int[] { 0 };
+            int[] modelBoundaries = new int[] { 0, 1, 2, 5 };
+            modelReader = new ComsolMeshReader3(filename, new double[] { k, k }, new double[][] { U, U }, new double[] { L, 0 });
+            model = await Task.Run(() => modelReader.CreateModelFromFile(modelDomains, modelBoundaries));
+            Console.WriteLine("\tReading Growth File completed");
+            return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
         private static async Task<Tuple<Model, IModelReader>> InitStructuralModelAsync()
         {
-
             double[] muLame = new double[] { 6e4, 2.1e4 };
             double[] poissonV = new double[] { .45, .2 };
             IDynamicMaterial[] dynamicMaterials = new DynamicMaterial[] { new DynamicMaterial(.001, 0, 0, true), new DynamicMaterial(.001, 0, 0, true) };
             return await Task.Run(()=> CreateStructuralModel(muLame, poissonV, dynamicMaterials, 0, new double[] { 0, 0, 0 }, lgElement)); // new Model();
         }
+
+
 
         private static void UpdateModels(Dictionary<int, IVector>[] prevStepSolutions, IStructuralModel[] modelsToReplace, ISolver[] solversToReplace,
             IConvectionDiffusionIntegrationProvider[] providersToReplace, IChildAnalyzer[] childAnalyzersToReplace)
@@ -217,8 +250,8 @@ namespace ISAAR.MSolve.Tests.FEM
                     lgElement[e.ID] += lgNode[e.Nodes[i].ID] / (e.Nodes.Count);
                 }
             }
-            modelsToReplace[0] = CreateOxygenTransportModel(Dox, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement).Item1;
-            modelsToReplace[1] = CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement).Item1;
+            modelsToReplace[0] = CreateOxygenTransportModel(Dox, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement, false).Item1;
+            modelsToReplace[1] = CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement, false).Item1;
             for (int i = 0; i < modelsToReplace.Length; i++)
             {
                 solversToReplace[i] = builder.BuildSolver(modelsToReplace[i]);
@@ -273,27 +306,18 @@ namespace ISAAR.MSolve.Tests.FEM
             return true;
         }
 
-        private static Tuple<Model, IModelReader> CreateGrowthModel(double k, double[] U, double L, double[] lgr)
+        private static Tuple<Model, IModelReader> CreateGrowthModel(double k, double[] U, double L, double[] lgr, bool init)
         {
-            ComsolMeshReader3 modelReader;
-            Model model;
+            ComsolMeshReader3 modelReader = (ComsolMeshReader3)gModel.Item2;
+            Model model = gModel.Item1;
 
-            if (gModel == null)
-            {
-                Console.WriteLine("Creating Growth Model");
-                string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
-                int[] modelDomains = new int[] { 0 };
-                int[] modelBoundaries = new int[] { 0, 1, 2, 5 };
-                modelReader = new ComsolMeshReader3(filename, new double[] { k, k }, new double[][] { U, U }, new double[] { L, 0 });
-                model = modelReader.CreateModelFromFile(modelDomains, modelBoundaries);
-            }
-            else
+            if (!init)
             {
                 Console.WriteLine("Updating Growth Model...");
-                modelReader = (ComsolMeshReader3)gModel.Item2;
                 modelReader = modelReader.UpdateModelReader(new double[] { k, k }, new double[][] { U, U }, new double[] { L, 0 });
                 model = modelReader.UpdateModel();
             }
+            else { Console.WriteLine("\tInitialising Growth Model"); }
 
             if (lgr == null)
             {
@@ -321,29 +345,22 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
-            Console.WriteLine("Growth model completed");
+            Console.WriteLine("\tGrowth model updated");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
-        private static Tuple<Model, IModelReader> CreateOxygenTransportModel(double[] k, double[][] U, double[] L, double[] coxElement)
+        private static Tuple<Model, IModelReader> CreateOxygenTransportModel(double[] k, double[][] U, double[] L, double[] coxElement, bool init)
         {
-            ComsolMeshReader2 modelReader;
-            Model model;
+            ComsolMeshReader2 modelReader = (ComsolMeshReader2)oxModel.Item2;
+            Model model = oxModel.Item1;
 
-            if (oxModel == null)
+            if (!init)
             {
-                Console.WriteLine("Creating Oxygen Model");
-                string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
-                modelReader = new ComsolMeshReader2(filename, k, U, L);
-                model = modelReader.CreateModelFromFile();
-            }
-            else
-            {
-                Console.WriteLine("Updating Oxygen Model...");
-                modelReader = (ComsolMeshReader2)oxModel.Item2;
+                Console.WriteLine("\tUpdating Oxygen Model...");
                 modelReader = modelReader.UpdateModelReader(k, U, L);
                 model = modelReader.UpdateModel();
             }
+            else { Console.WriteLine("\tInitialising Oxygen Model"); }
 
             var materials = new ConvectionDiffusionMaterial[] { new ConvectionDiffusionMaterial(k[0], U[0], L[0]), new ConvectionDiffusionMaterial(k[1], U[1], L[1])};
             if (coxElement == null)
@@ -375,7 +392,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
-            Console.WriteLine("Oxygen Model completed");
+            Console.WriteLine("\tOxygen Model updated");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
@@ -392,7 +409,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 C2[i] = 0;
                 bulkModulus[i] = 2 * MuLame[i] * (1 + PoissonV[i]) / (3 * (1 - 2 * PoissonV[i]));
             }
-            Console.WriteLine("Creating structural model");
+            Console.WriteLine("\tCreating Structural model");
             ComsolMeshReader1 modelReader;
             string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
             if (lambdag == null)
@@ -469,7 +486,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 }
             }
 
-            Console.WriteLine("Structural model completed");
+            Console.WriteLine("\tStructural model created");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
