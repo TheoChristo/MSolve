@@ -30,6 +30,7 @@ using ISSAR.MSolve.Discretization.Loads;
 using ISAAR.MSolve.FEM.Loading.BodyLoads;
 using System.Reflection;
 using ISAAR.MSolve.FEM.Elements;
+using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
@@ -58,17 +59,15 @@ namespace ISAAR.MSolve.Tests.FEM
         private static Dictionary<int, IVector> Displacements;
         private static Tuple<Model, IModelReader> oxModel, gModel, structModel;
         [Fact]
-        private static void RunTest()
+        private static async void RunTest()
         {
-            var DoxDays = new double[Dox.Length];
-            for (int i = 0; i < Dox.Length; i++)
-            {
-                DoxDays[i] = 24 * 3600 * Dox[i];
-            }
-            oxModel = CreateOxygenTransportModel(DoxDays, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement);
-            gModel = CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement);
+
+            await InitModelsAsync();
+
             var models = new[] { oxModel.Item1, gModel.Item1 };
-            var modelReaders = new[] { oxModel.Item2, gModel.Item2 };            
+            var modelReaders = new[] { oxModel.Item2, gModel.Item2 };
+
+
             //var modelTuple3 = CreateStructuralModel(10e4, 0, new DynamicMaterial(.001, 0, 0, true), 0, new double[] { 0, 0, 0 });
             //IVectorView[] solutions = SolveModels(models, modelReaders);
             IVectorView[] solutions = SolveModelsWithNewmark(models, modelReaders);
@@ -156,6 +155,43 @@ namespace ISAAR.MSolve.Tests.FEM
             //}end*/
             #endregion
             Assert.True(CompareResults(solutions[0]));
+        }
+
+        private static async Task InitModelsAsync()
+        {
+            var oxTask = InitOxygenTransportModelAsync();
+            var grTask = InitGrowthtModelAsync();
+            var strTask = InitStructuralModelAsync();
+            var tasks = new List<Task> { oxTask, grTask, strTask };
+
+            await Task.WhenAll(tasks);
+            oxModel = oxTask.Result;
+            gModel = grTask.Result;
+            structModel = strTask.Result;
+        }
+
+        private static async Task <Tuple<Model, IModelReader>> InitOxygenTransportModelAsync()
+        {
+            var DoxDays = new double[Dox.Length];
+            for (int i = 0; i<Dox.Length; i++)
+            {
+                DoxDays[i] = 24 * 3600 * Dox[i];
+            }
+            return await Task.Run(() => CreateOxygenTransportModel(DoxDays, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement));
+        }
+
+        private static async Task<Tuple<Model, IModelReader>> InitGrowthtModelAsync()
+        {
+            return await Task.Run(() => CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement));
+        }
+
+        private static async Task<Tuple<Model, IModelReader>> InitStructuralModelAsync()
+        {
+
+            double[] muLame = new double[] { 6e4, 2.1e4 };
+            double[] poissonV = new double[] { .45, .2 };
+            IDynamicMaterial[] dynamicMaterials = new DynamicMaterial[] { new DynamicMaterial(.001, 0, 0, true), new DynamicMaterial(.001, 0, 0, true) };
+            return await Task.Run(()=> CreateStructuralModel(muLame, poissonV, dynamicMaterials, 0, new double[] { 0, 0, 0 }, lgElement)); // new Model();
         }
 
         private static void UpdateModels(Dictionary<int, IVector>[] prevStepSolutions, IStructuralModel[] modelsToReplace, ISolver[] solversToReplace,
@@ -285,6 +321,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
+            Console.WriteLine("Growth model completed");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
@@ -338,6 +375,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
+            Console.WriteLine("Oxygen Model completed");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
@@ -354,7 +392,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 C2[i] = 0;
                 bulkModulus[i] = 2 * MuLame[i] * (1 + PoissonV[i]) / (3 * (1 - 2 * PoissonV[i]));
             }
-
+            Console.WriteLine("Creating structural model");
             ComsolMeshReader1 modelReader;
             string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
             if (lambdag == null)
@@ -430,6 +468,8 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.Loads.Add(new Load() { Node = node, DOF = StructuralDof.TranslationX, Amount = 1e-4 });
                 }
             }
+
+            Console.WriteLine("Structural model completed");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
@@ -470,22 +510,18 @@ namespace ISAAR.MSolve.Tests.FEM
             var parentAnalyzer = new ConvectionDiffusionImplicitDynamicAnalyzerMultiModel(UpdateModels, models, solvers,
                 providers, childAnalyzers, timestep, time, initialTemperature: initialValues);
             parentAnalyzer.Initialize();
-            double[] muLame = new double[] { 6e4, 2.1e4 };
-            double[] poissonV = new double[] { .45, .2};
-            IDynamicMaterial[] dynamicMaterials = new DynamicMaterial[] { new DynamicMaterial(.001, 0, 0, true), new DynamicMaterial(.001, 0, 0, true) };
-            structModel = CreateStructuralModel(muLame, poissonV, dynamicMaterials, 0, new double[] { 0, 0, 0 }, lgElement);//.Item1; // new Model();
-            var structuralModel = structModel.Item1;
-            var structuralSolver = structuralBuilder.BuildSolver(structuralModel);
-            var structuralProvider = new ProblemStructural(structuralModel, structuralSolver);
+           
+            var structuralSolver = structuralBuilder.BuildSolver(structModel.Item1);
+            var structuralProvider = new ProblemStructural(structModel.Item1, structuralSolver);
             //var structuralChildAnalyzer = new LinearAnalyzer(structuralModel, structuralSolver, structuralProvider);
             var increments = 2;
-            var structuralChildAnalyzerBuilder = new LoadControlAnalyzer.Builder(structuralModel, structuralSolver, structuralProvider, increments);
+            var structuralChildAnalyzerBuilder = new LoadControlAnalyzer.Builder(structModel.Item1, structuralSolver, structuralProvider, increments);
             structuralChildAnalyzerBuilder.ResidualTolerance = 1E-5;
             structuralChildAnalyzerBuilder.MaxIterationsPerIncrement = 50;
             structuralChildAnalyzerBuilder.NumIterationsForMatrixRebuild = 5;
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer structuralChildAnalyzer = structuralChildAnalyzerBuilder.Build();
-            var structuralParentAnalyzer = new NewmarkDynamicAnalyzer(UpdateNewmarkModel, structuralModel, structuralSolver,
+            var structuralParentAnalyzer = new NewmarkDynamicAnalyzer(UpdateNewmarkModel, structModel.Item1, structuralSolver,
                 structuralProvider, structuralChildAnalyzer, timestep, time, 0.25, 0.5);
             structuralParentAnalyzer.Initialize();
 
