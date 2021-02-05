@@ -61,7 +61,10 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static async void RunTest()
         {
-            await InitModelsAsync();
+            var strTask = InitStructuralModelAsync();
+            await CreateModelsAsync();
+            structModel = await strTask;
+
             var models = new[] { oxModel.Item1, gModel.Item1 };
             var modelReaders = new[] { oxModel.Item2, gModel.Item2 };
             //var modelTuple3 = CreateStructuralModel(10e4, 0, new DynamicMaterial(.001, 0, 0, true), 0, new double[] { 0, 0, 0 });
@@ -153,13 +156,6 @@ namespace ISAAR.MSolve.Tests.FEM
             Assert.True(CompareResults(solutions[0]));
         }
 
-        private static async Task InitModelsAsync()
-        {
-            var strTask = InitStructuralModelAsync();
-            await CreateModelsAsync();
-            structModel = await strTask;
-        }
-
         private static async Task CreateModelsAsync()
         {
             Console.WriteLine("Reading Model Files");
@@ -207,7 +203,7 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             ComsolMeshReader3 modelReader;
             Model model;
-            Console.WriteLine("\tReading Growth File Model");
+            Console.WriteLine("\tReading Growth File");
             string filename = Path.Combine(Directory.GetCurrentDirectory(), "InputFiles", "TumorGrowthModel", "meshXXCoarse.mphtxt");
             int[] modelDomains = new int[] { 0 };
             int[] modelBoundaries = new int[] { 0, 1, 2, 5 };
@@ -227,7 +223,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
 
 
-        private static void UpdateModels(Dictionary<int, IVector>[] prevStepSolutions, IStructuralModel[] modelsToReplace, ISolver[] solversToReplace,
+        private static async void UpdateModels(Dictionary<int, IVector>[] prevStepSolutions, IStructuralModel[] modelsToReplace, ISolver[] solversToReplace,
             IConvectionDiffusionIntegrationProvider[] providersToReplace, IChildAnalyzer[] childAnalyzersToReplace)
         {
             c_oxNode = solversToReplace[0].LinearSystems[0].Solution.CopyToArray();
@@ -250,15 +246,69 @@ namespace ISAAR.MSolve.Tests.FEM
                     lgElement[e.ID] += lgNode[e.Nodes[i].ID] / (e.Nodes.Count);
                 }
             }
+
+
+            Console.WriteLine("Updating Models");
             modelsToReplace[0] = CreateOxygenTransportModel(Dox, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement, false).Item1;
             modelsToReplace[1] = CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement, false).Item1;
+            //var oxTask = UpdateOxygenModelAsync(modelsToReplace[0]);
+            //var grTask = UpdateGrowthModelAsync(modelsToReplace[1]);
+            //var modeltasks = new List<Task> { oxTask, grTask };
+
+            //await Task.WhenAll(modeltasks);
+            //modelsToReplace[0] = oxTask.Result;
+            //modelsToReplace[1] = grTask.Result;
+            //Console.WriteLine("all Models updated");
             for (int i = 0; i < modelsToReplace.Length; i++)
             {
+                Console.WriteLine("Updating solver " + i);
                 solversToReplace[i] = builder.BuildSolver(modelsToReplace[i]);
                 providersToReplace[i] = new ProblemConvectionDiffusion2((Model)modelsToReplace[i], solversToReplace[i]);
                 childAnalyzersToReplace[i] = new LinearAnalyzer(modelsToReplace[i], solversToReplace[i], providersToReplace[i]);
             }
+            Console.WriteLine("all Solvers updated");
+
         }
+
+        private static async Task<Model> UpdateOxygenModelAsync(IStructuralModel modelToReplace)
+        {
+            Console.WriteLine("Updating Oxygen model");
+            Task<Model> modelTask;
+            modelTask = Task.Run(() => CreateOxygenTransportModel(Dox, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement, false).Item1);
+            Model model = await modelTask;
+            Console.WriteLine("Oxygen Model update finished");
+            return model;
+        }
+        private static async Task<Model> UpdateGrowthModelAsync(IStructuralModel modelToReplace)
+        {
+            Console.WriteLine("Updating Growth model");
+            Task<Model> modelTask;
+            modelTask = Task.Run(() => CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement, false).Item1);
+            Model model = await modelTask;
+            Console.WriteLine("Growth Model update finished");
+            return model;
+        }
+
+
+        //private static async Task<Tuple<IStructuralModel, ISolver, IConvectionDiffusionIntegrationProvider, IChildAnalyzer>> UpdateModelAsync(IStructuralModel modelToReplace)
+        //{
+        //    Console.WriteLine("Updating model");
+        //    IStructuralModel model;
+
+        //    if (modelToReplace == oxModel.Item1)
+        //        model = CreateOxygenTransportModel(Dox, conv0, new double[] { Dox[0] / Lwv * 7e3 * 24 * 3600, Dox[1] / Lwv * 7e3 * 24 * 3600 }, c_oxElement, false).Item1;
+        //    else //if (modelToReplace == gModel.Item1)
+        //        model = CreateGrowthModel(0, new double[] { 0, 0, 0 }, 0, lgElement, false).Item1;
+
+        //    var solver = builder.BuildSolver(model);
+        //    var provider = new ProblemConvectionDiffusion2((Model)model, solver);
+        //    var childAnalyzer =  new LinearAnalyzer(model, solver, provider);
+        //    //await Task.Run(() => { });
+        //    //var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+        //    Console.WriteLine("Model update finished");
+        //    return new Tuple<IStructuralModel, ISolver, IConvectionDiffusionIntegrationProvider, IChildAnalyzer>(model, solver, provider, childAnalyzer);
+        //}
+
 
         private static void ReplaceLambdaGInModel(IStructuralModel model, double[] lg)
         {
@@ -313,7 +363,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
             if (!init)
             {
-                Console.WriteLine("Updating Growth Model...");
+                Console.WriteLine("\tUpdating Growth Model...");
                 modelReader = modelReader.UpdateModelReader(new double[] { k, k }, new double[][] { U, U }, new double[] { L, 0 });
                 model = modelReader.UpdateModel();
             }
@@ -345,7 +395,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
-            Console.WriteLine("\tGrowth model updated");
+            Console.WriteLine("\tCreateGrowthModel completed");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
@@ -392,7 +442,7 @@ namespace ISAAR.MSolve.Tests.FEM
                     model.BodyLoads.Add(bodyLoadElement);
                 }
             }
-            Console.WriteLine("\tOxygen Model updated");
+            Console.WriteLine("\tCreateOxygenTransportModel completed");
             return new Tuple<Model, IModelReader>(model, modelReader);
         }
 
